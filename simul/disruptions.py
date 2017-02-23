@@ -3,6 +3,9 @@ import random
 from peer import BaseService
 
 
+# TODO: inserire fail crash inserire
+# TODO: channel non sempre FIFO ma mischiare la delivery di qualche messaggio qualche volta
+
 class BaseDisruption(BaseService):
     mtbf = 24. * 60 * 60 # secs (mean time between failures)
     availability = 0.97
@@ -20,7 +23,7 @@ class BaseDisruption(BaseService):
     def disruption_start(self):
         pass
 
-    def disruption_end(self):
+    def disruption_end (self):
         pass
 
     def probe_status_change(self):
