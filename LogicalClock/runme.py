@@ -9,6 +9,7 @@ import simpy
 from simul.peer import Peer
 from simul.disruptions import Downtime
 from simul.disruptions import Slowdown
+from simul.disruptions import Crash_Stop
 
 from  peermanager import Lamport_clock_service
 
@@ -25,6 +26,7 @@ def managed_peer(name, env):
     p.services.append(Lamport_clock_service(env, p))
     p.services.append(Downtime(env, p))
     p.services.append(Slowdown(env, p))
+    p.services.append(Crash_Stop(env, p))
     return p
 
 #########################################

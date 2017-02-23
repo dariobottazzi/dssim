@@ -3,9 +3,6 @@ import random
 from peer import BaseService
 
 
-# TODO: inserire fail crash inserire
-# TODO: channel non sempre FIFO ma mischiare la delivery di qualche messaggio qualche volta
-
 class BaseDisruption(BaseService):
     mtbf = 24. * 60 * 60 # secs (mean time between failures)
     availability = 0.97
@@ -59,6 +56,28 @@ class Downtime(BaseDisruption):
 
     def disruption_end(self):
         self.peer.active = True
+
+
+class Crash_Stop (BaseDisruption):
+    interval = 5.
+
+    def __init__(self, env, peer):
+        super(Crash_Stop, self).__init__(env, peer)
+
+    def disruption_start(self):
+        if (self.peer.active == True):
+                self.peer.active = False
+                print "peer", self.peer, "is down"
+
+
+    def disruption_end(self):
+        pass
+
+
+    def run(self):
+        while True:
+            yield self.env.timeout(self.interval)
+            self.disruption_start()
 
 
 class Slowdown(BaseDisruption):

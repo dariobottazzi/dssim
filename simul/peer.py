@@ -1,7 +1,8 @@
 import simpy
 from messages import BaseMessage
 
-class Connection(object):
+class Connection(object): # TODO: channel non sempre FIFO ma mischiare la delivery di qualche messaggio qualche volta
+
     """
     Models the data transfer between peers and the implied latency.
     """
@@ -104,18 +105,21 @@ class Peer(object):
         #print self, 'received', msg
         assert isinstance(msg, BaseMessage)
 
-        for s in self.services:
-            assert isinstance(s, BaseService)
-            s.handle_message(self, msg)
+        if (self.active == True):    # propagate the message only if the peer is active
+            for s in self.services:
+                assert isinstance(s, BaseService)
+                s.handle_message(self, msg)
 
     def send(self, receiver, msg):
         # fire and forget
-        assert msg.sender == self
-        self.connections[receiver].send(msg)
+        if (self.active == True):   # send the message only if the peer is active
+            assert msg.sender == self
+            self.connections[receiver].send(msg)
 
     def broadcast(self, msg):
-        for other in self.connections:
-            self.send(other, msg)
+        if (self.active == True):  # send the message only if the peer is active
+            for other in self.connections:
+                self.send(other, msg)
 
     def run(self):
         while True:
