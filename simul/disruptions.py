@@ -75,9 +75,9 @@ class Crash_Stop (BaseDisruption):
 
 
     def run(self):
-        while True:
-            yield self.env.timeout(self.interval)
-            self.disruption_start()
+        #while True:
+        yield self.env.timeout(self.interval)
+        self.disruption_start()
 
 
 class Slowdown(BaseDisruption):
