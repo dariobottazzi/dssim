@@ -26,7 +26,7 @@ def managed_peer(name, env):
     p.services.append(Lamport_clock_service(env, p))
     p.services.append(Downtime(env, p))
     p.services.append(Slowdown(env, p))
-    p.services.append(Crash_Stop(env, p))
+    #p.services.append(Crash_Stop(env, p))
     return p
 
 #########################################
