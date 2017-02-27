@@ -3,6 +3,7 @@
 import random
 import simpy
 from simul.peer import Peer
+from simul.peer import Channel_Factory
 from simul.disruptions import Downtime
 from simul.disruptions import Slowdown
 
@@ -18,8 +19,8 @@ KBit = 1024/8
 MBit = 1024 * KBit
 VISUALIZATION = False # TODO: fix network visualization support
 
-def managed_peer(name, env):
-    p = Peer(name, env)
+def managed_peer(name, env, channel_factory):
+    p = Peer(name, env, channel_factory)
     p.services.append(ConnectionManager(p))
     p.services.append(PeerRequestHandler())
     p.services.append(PingHandler())
@@ -28,10 +29,10 @@ def managed_peer(name, env):
     return p
 
 
-def create_peers(peerserver, num):
+def create_peers(peerserver, num, channel_factory):
     peers = []
     for i in range(num):
-        p = managed_peer('P%d' % i, env)
+        p = managed_peer('P%d' % i, env, channel_factory)
         # initial connect to peerserver
         connection_manager = p.services[0]
         connection_manager.connect_peer(peerserver)
@@ -49,11 +50,12 @@ def create_peers(peerserver, num):
 env = simpy.Environment()
 
 # bootstrapping peer
-pserver = managed_peer('PeerServer', env)
+channel_factory = Channel_Factory("FIFO_Channel")
+pserver = managed_peer('PeerServer', env, channel_factory)
 pserver.bandwidth_ul = pserver.bandwidth_dl = 128 * KBit # super slow
 
 # other peers
-peers = create_peers(pserver, NUM_PEERS)
+peers = create_peers(pserver, NUM_PEERS, channel_factory)
 
 print 'starting sim'
 if VISUALIZATION: # TODO: fix network visualization support

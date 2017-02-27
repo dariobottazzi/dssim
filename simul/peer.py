@@ -1,4 +1,5 @@
 import simpy
+import random
 from messages import BaseMessage
 
 
@@ -8,7 +9,6 @@ from messages import BaseMessage
 # TODO: FIFO perfect link (a TCP session)
 
 
-"""
 class Channel(object):
     def __init__(self, env, sender, receiver):
         self.env = env
@@ -38,7 +38,38 @@ class FIFO_Channel(Channel):
     def round_trip(self):
         # basically backbone latency
         # evenly distributed pseudo random round trip times
-        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.
+        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.  # TODO: mettere a posto simulazione del delay che va bene per numeri bassi
+
+    @property
+    def bandwidth(self):
+        return min(self.sender.bandwidth_ul, self.receiver.bandwidth_dl)
+
+
+    def send(self, msg, connect=False):
+
+        def _transfer():
+            bytes = msg.size
+            delay = bytes / self.sender.bandwidth_ul
+            delay += bytes / self.receiver.bandwidth_dl
+            delay += self.round_trip / 2
+            yield self.env.timeout(delay)
+            self.delivery(msg)
+
+        self.env.process(_transfer())
+
+
+class Stubborn_Channel(Channel): # TODO: implement an actual stubborn channel
+
+    def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300):
+        super(Stubborn_Channel, self).__init__(env, sender, receiver)
+        self.rt_min = rt_min
+        self.rt_max = rt_max
+
+    @property
+    def round_trip(self):
+        # basically backbone latency
+        # evenly distributed pseudo random round trip times
+        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.  # TODO: mettere a posto simulazione del delay che va bene per numeri bassi
 
     @property
     def bandwidth(self):
@@ -60,7 +91,7 @@ class FIFO_Channel(Channel):
 
 class Fairloss_Channel(FIFO_Channel):
 
-    def __init__(self, env, sender, receiver, delivery_probability, rt_min = 10, rt_max=300):
+    def __init__(self, env, sender, receiver, delivery_probability=0.99, rt_min = 10, rt_max=300):
         super(Fairloss_Channel, self).__init__(env, sender, receiver, rt_min, rt_max)
         self.probability = delivery_probability
 
@@ -73,60 +104,20 @@ class Fairloss_Channel(FIFO_Channel):
             print "channel dropped the message"
 
 
+class Channel_Factory:
+    def __init__(self, channel_type):
+        self.channel_type = channel_type
+        self.rt_min = 10
+        self.rt_max = 300
+        self.delivery_probability = 0.99
 
-"""
-
-
-
-
-
-
-class Connection(object):
-
-    """
-    Models the data transfer between peers and the implied latency.
-    This is a FIFO Channel
-    """
-
-    def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300):
-        self.env = env
-        self.sender = sender
-        self.receiver = receiver
-        self.start_time = env.now
-        self.rt_min = rt_min
-        self.rt_max = rt_max
-
-    def __repr__(self):
-        return '<Connection %r -> %r>' % (self.sender, self.receiver)
-
-    @property
-    def round_trip(self):
-        # basically backbone latency
-        # evenly distributed pseudo random round trip times
-        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.
-
-    @property
-    def bandwidth(self):
-        return min(self.sender.bandwidth_ul, self.receiver.bandwidth_dl)
-
-    def send(self, msg, connect=False):
-        """
-        fire and forget
-        i.e. we don't get notified if the message was not delivered
-
-        connect : deliver message even if not connected yet
-        """
-        def _transfer():
-            bytes = msg.size
-            delay = bytes / self.sender.bandwidth_ul
-            delay += bytes / self.receiver.bandwidth_dl
-            delay += self.round_trip / 2
-            yield self.env.timeout(delay)
-            if self.receiver.is_connected(msg.sender) or connect:
-                self.receiver.msg_queue.put(msg)
-
-        self.env.process(_transfer())
-
+    def factory(self, env, sender, receiver):
+        if (self.channel_type=="FIFO_Channel"):
+            return FIFO_Channel(env, sender, receiver)
+        elif (self.channel_type=="Fairloss_Channel"):
+            return Fairloss_Channel (env, sender, receiver)
+        elif (self.channel_type=="Stubborn_Channel"):
+            return Stubborn_Channel (env, sender, receiver)
 
 
 class BaseService(object):
@@ -149,7 +140,7 @@ class Peer(object):
     bandwidth_ul = 2400 * KBit
     bandwidth_dl = 16000 * KBit
 
-    def __init__(self, name,  env):
+    def __init__(self, name,  env, channel_factory):
         self.name = name
         self.env = env
         self.msg_queue = simpy.Store(env)
@@ -157,6 +148,7 @@ class Peer(object):
         self.active = True
         self.services = [] # Service.handle_message(self, msg) called on message
         self.disconnect_callbacks = []
+        self.channel_factory = channel_factory
         env.process(self.run())
 
     def __repr__(self):
@@ -166,7 +158,7 @@ class Peer(object):
         if not self.is_connected(other):
             print self.env.now,
             print " %r connecting to %r" % (self, other)
-            self.connections[other] = Connection(self.env, self, other)
+            self.connections[other] = self.channel_factory.factory(self.env, self, other)
             if not other.is_connected(self):
                 other.connect(self)
 
