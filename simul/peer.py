@@ -1,10 +1,91 @@
 import simpy
 from messages import BaseMessage
 
-class Connection(object): # TODO: channel non sempre FIFO ma mischiare la delivery di qualche messaggio qualche volta
+
+# TODO: fair loss links, puo' perdere qulach emssaggio con prob p
+# TODO: stubborn link da implementare it uses a lossy link
+# TODO: perfect link
+# TODO: FIFO perfect link (a TCP session)
+
+
+"""
+class Channel(object):
+    def __init__(self, env, sender, receiver):
+        self.env = env
+        self.sender = sender
+        self.receiver = receiver
+        self.start_time = env.now
+
+    def __repr__(self):
+        return '<Connection %r -> %r>' % (self.sender, self.receiver)
+
+    def _delivery (self, msg, connect=False):
+        if self.receiver.is_connected(msg.sender) or connect:
+            self.receiver.msg_queue.put(msg)
+
+    def send(self, msg, connect=False):
+        pass
+
+
+class FIFO_Channel(Channel):
+
+    def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300):
+        super(FIFO_Channel, self).__init__(env, sender, receiver)
+        self.rt_min = rt_min
+        self.rt_max = rt_max
+
+    @property
+    def round_trip(self):
+        # basically backbone latency
+        # evenly distributed pseudo random round trip times
+        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.
+
+    @property
+    def bandwidth(self):
+        return min(self.sender.bandwidth_ul, self.receiver.bandwidth_dl)
+
+
+    def send(self, msg, connect=False):
+
+        def _transfer():
+            bytes = msg.size
+            delay = bytes / self.sender.bandwidth_ul
+            delay += bytes / self.receiver.bandwidth_dl
+            delay += self.round_trip / 2
+            yield self.env.timeout(delay)
+            self.delivery(msg)
+
+        self.env.process(_transfer())
+
+
+class Fairloss_Channel(FIFO_Channel):
+
+    def __init__(self, env, sender, receiver, delivery_probability, rt_min = 10, rt_max=300):
+        super(Fairloss_Channel, self).__init__(env, sender, receiver, rt_min, rt_max)
+        self.probability = delivery_probability
+
+
+    def send(self, msg, connect=False):
+        run_dice = random.random()
+        if run_dice <= self.probability:
+            super(Fairloss_Channel, self).send(msg, connect)
+        else:
+            print "channel dropped the message"
+
+
+
+"""
+
+
+
+
+
+
+class Connection(object):
 
     """
     Models the data transfer between peers and the implied latency.
+    This is a FIFO Channel
     """
 
     def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300):
@@ -45,6 +126,7 @@ class Connection(object): # TODO: channel non sempre FIFO ma mischiare la delive
                 self.receiver.msg_queue.put(msg)
 
         self.env.process(_transfer())
+
 
 
 class BaseService(object):

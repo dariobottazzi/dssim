@@ -37,7 +37,7 @@ class Lamport_clock_service(BaseService):
             print self.env.now, self.peer.name, " recived msg from ", msg.sender, " with clock ", msg.data
             if (msg.data > self.clock):
                 print self.env.now, self.peer.name, " updates clock from ", self.clock, " to ", msg.data
-                self.clock = msg.data
+                self.clock = msg.data + 1
             else:
                 print self.env.now, self.peer.name, "drops the message from ", msg.sender, " because recived clock is late "
 

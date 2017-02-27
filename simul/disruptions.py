@@ -2,8 +2,7 @@ import random
 
 from peer import BaseService
 
-
-class BaseDisruption(BaseService):
+class BaseDisruption(BaseService):   # TODO: mettere a posto le disruption. potrei definire disruption, recoverable disruption unrecoverable disruption
     mtbf = 24. * 60 * 60 # secs (mean time between failures)
     availability = 0.97
     interval = 1.
@@ -54,8 +53,13 @@ class Downtime(BaseDisruption):
     def disruption_start(self):
         self.peer.active = False
 
+    def restore_state(self):
+        pass
+
     def disruption_end(self):
         self.peer.active = True
+        self.restore_state() # execute restore state operations or peer boostrap if it is needed
+
 
 
 class Crash_Stop (BaseDisruption):
@@ -75,7 +79,6 @@ class Crash_Stop (BaseDisruption):
 
 
     def run(self):
-        #while True:
         yield self.env.timeout(self.interval)
         self.disruption_start()
 
