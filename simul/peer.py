@@ -19,7 +19,7 @@ class Channel(object):
     def __repr__(self):
         return '<Connection %r -> %r>' % (self.sender, self.receiver)
 
-    def _delivery (self, msg, connect=False):
+    def delivery (self, msg, connect=False):
         if self.receiver.is_connected(msg.sender) or connect:
             self.receiver.msg_queue.put(msg)
 
