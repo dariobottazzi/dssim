@@ -3,10 +3,8 @@ import random
 from messages import BaseMessage
 
 
-# TODO: fair loss links, puo' perdere qulach emssaggio con prob p
 # TODO: stubborn link da implementare it uses a lossy link
 # TODO: perfect link
-# TODO: FIFO perfect link (a TCP session)
 
 
 class Channel(object):
@@ -38,7 +36,7 @@ class FIFO_Channel(Channel):
     def round_trip(self):
         # basically backbone latency
         # evenly distributed pseudo random round trip times
-        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.  # TODO: mettere a posto simulazione del delay che va bene per numeri bassi
+        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.
 
     @property
     def bandwidth(self):
@@ -58,10 +56,13 @@ class FIFO_Channel(Channel):
         self.env.process(_transfer())
 
 
-class Stubborn_Channel(Channel): # TODO: implement an actual stubborn channel
+
+
+
+class Perfect_Link_Channel (Channel): # TODO: implement an actual perfect link channel
 
     def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300):
-        super(Stubborn_Channel, self).__init__(env, sender, receiver)
+        super(Perfect_Link_Channel, self).__init__(env, sender, receiver)
         self.rt_min = rt_min
         self.rt_max = rt_max
 
@@ -69,12 +70,11 @@ class Stubborn_Channel(Channel): # TODO: implement an actual stubborn channel
     def round_trip(self):
         # basically backbone latency
         # evenly distributed pseudo random round trip times
-        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.  # TODO: mettere a posto simulazione del delay che va bene per numeri bassi
+        return (self.rt_min + (id(self.sender) + id(self.receiver)) % (self.rt_max-self.rt_min)) / 1000.
 
     @property
     def bandwidth(self):
         return min(self.sender.bandwidth_ul, self.receiver.bandwidth_dl)
-
 
     def send(self, msg, connect=False):
 
@@ -87,6 +87,7 @@ class Stubborn_Channel(Channel): # TODO: implement an actual stubborn channel
             self.delivery(msg)
 
         self.env.process(_transfer())
+
 
 
 class Fairloss_Channel(FIFO_Channel):
@@ -95,13 +96,21 @@ class Fairloss_Channel(FIFO_Channel):
         super(Fairloss_Channel, self).__init__(env, sender, receiver, rt_min, rt_max)
         self.probability = delivery_probability
 
-
     def send(self, msg, connect=False):
         run_dice = random.random()
         if run_dice <= self.probability:
             super(Fairloss_Channel, self).send(msg, connect)
         else:
             print "channel dropped the message"
+
+
+
+
+
+
+
+
+
 
 
 class Channel_Factory:
@@ -116,8 +125,10 @@ class Channel_Factory:
             return FIFO_Channel(env, sender, receiver)
         elif (self.channel_type=="Fairloss_Channel"):
             return Fairloss_Channel (env, sender, receiver)
-        elif (self.channel_type=="Stubborn_Channel"):
-            return Stubborn_Channel (env, sender, receiver)
+        #elif (self.channel_type=="Loss_Repetition_Channel"):
+        #    return Loss_Repetition_Channel (env, sender, receiver)
+        elif (self.channel_type=="Perfect_Link_Channel"):
+            return Perfect_Link_Channel (env, sender, receiver)
 
 
 class BaseService(object):

@@ -2,7 +2,7 @@ import random
 
 from peer import BaseService
 
-class BaseDisruption(BaseService):   # TODO: mettere a posto le disruption. potrei definire disruption, recoverable disruption unrecoverable disruption
+class BaseDisruption(BaseService):
     mtbf = 24. * 60 * 60 # secs (mean time between failures)
     availability = 0.97
     interval = 1.
