@@ -2,11 +2,6 @@ import simpy
 import random
 from messages import BaseMessage
 
-
-# TODO: stubborn link da implementare it uses a lossy link
-# TODO: perfect link
-
-
 class Channel(object):
     def __init__(self, env, sender, receiver):
         self.env = env
@@ -42,7 +37,6 @@ class FIFO_Channel(Channel):
     def bandwidth(self):
         return min(self.sender.bandwidth_ul, self.receiver.bandwidth_dl)
 
-
     def send(self, msg, connect=False):
 
         def _transfer():
@@ -57,14 +51,14 @@ class FIFO_Channel(Channel):
 
 
 
+class Perfect_Link_Channel (Channel): # delay make the channel perfect in delivery, but do not guarantee FIFO delivery
 
-
-class Perfect_Link_Channel (Channel): # TODO: implement an actual perfect link channel
-
-    def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300):
+    def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300, probability_delay=0.05, max_delay_infrastructure = 50):
         super(Perfect_Link_Channel, self).__init__(env, sender, receiver)
         self.rt_min = rt_min
         self.rt_max = rt_max
+        self.probability_delay = probability_delay
+        self.max_delay_infrastructure = max_delay_infrastructure
 
     @property
     def round_trip(self):
@@ -86,6 +80,9 @@ class Perfect_Link_Channel (Channel): # TODO: implement an actual perfect link c
             yield self.env.timeout(delay)
             self.delivery(msg)
 
+        if (random.random()<self.probability_delay):
+            yield self.env.timeout(self.max_delay_infrastructure * random.random())
+
         self.env.process(_transfer())
 
 
@@ -98,19 +95,27 @@ class Fairloss_Channel(FIFO_Channel):
 
     def send(self, msg, connect=False):
         run_dice = random.random()
-        if run_dice <= self.probability:
+        if (run_dice <= self.probability):
             super(Fairloss_Channel, self).send(msg, connect)
         else:
             print "channel dropped the message"
 
 
+class Loss_Repetition_Channel (FIFO_Channel):
 
+    def __init__(self, env, sender, receiver, delivery_probability=0.99, max_retrasmission = 3, max_time_retrasmission = 10, rt_min = 10, rt_max=300):
+        super(Loss_Repetition_Channel, self).__init__(env, sender, receiver, delivery_probability, rt_min, rt_max)
+        self.max_retrasmission = max_retrasmission
+        self.max_time_retrasmission = max_time_retrasmission
 
+    def send(self, msg, connect=False):
+        run_dice = random.random()
+        number_tx = int(run_dice * self.max_retrasmission) + 1
 
-
-
-
-
+        for i in range(number_tx):
+            super(Loss_Repetition_Channel,self).send(msg, connect)
+            if (number_tx>1):
+                yield self.env.timeout(self.max_time_retrasmission * random.random())
 
 
 class Channel_Factory:
@@ -125,11 +130,10 @@ class Channel_Factory:
             return FIFO_Channel(env, sender, receiver)
         elif (self.channel_type=="Fairloss_Channel"):
             return Fairloss_Channel (env, sender, receiver)
-        #elif (self.channel_type=="Loss_Repetition_Channel"):
-        #    return Loss_Repetition_Channel (env, sender, receiver)
+        elif (self.channel_type=="Loss_Repetition_Channel"):
+            return Loss_Repetition_Channel (env, sender, receiver)
         elif (self.channel_type=="Perfect_Link_Channel"):
             return Perfect_Link_Channel (env, sender, receiver)
-
 
 class BaseService(object):
     """
@@ -142,7 +146,6 @@ class BaseService(object):
     def handle_message(self, receiving_peer, msg):
         "this callable is added as a listener to Peer.listeners"
         pass
-
 
 KBit = 1024 / 8
 
