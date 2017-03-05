@@ -1,6 +1,6 @@
 A simple simulation framework for distributed system. Differently from other simulator the main aim is to support the design, development and testing of new protocols.
 
-The system is built on top othe the [simpy](https://simpy.readthedocs.org/en/latest/) event-based simulation framework. In addition the system extends heikoheiko/p2p-network-simulator (https://github.com/heikoheiko/p2p-network-simulator/blob/master/README.md)
+The system is built on top othe the [simpy](https://simpy.readthedocs.org/en/latest/) event-based simulation framework. In addition the system extends p2p-network-simulator (https://github.com/heikoheiko/p2p-network-simulator/)
 
 Features
 ======================
