@@ -12,6 +12,8 @@ from simul.disruptions import Downtime
 from simul.disruptions import Slowdown
 from simul.disruptions import Crash_Stop
 
+from simul.animate import Visualizer
+
 from  peermanager import Lamport_clock_service
 
 NUM_PEERS = 5
@@ -19,6 +21,7 @@ SIM_DURATION = 50
 KBit = 1024/8
 MBit = 1024 * KBit
 
+VISUALIZATION = True
 
 #########################################
 
@@ -54,7 +57,14 @@ env = simpy.Environment()
 
 peers = create_peers(NUM_PEERS, env)
 print 'starting sim'
-env.run(until=SIM_DURATION)
+
+
+
+
+if VISUALIZATION: # TODO: fix network visualization support
+    Visualizer(env, peers, SIM_DURATION)
+else:
+    env.run(until=SIM_DURATION)
 
 print "------------------- Situation after the end of the execution"
 for i in peers:

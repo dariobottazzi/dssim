@@ -27,9 +27,10 @@ def min_peers(peers):
 
 class Visualizer(object):
 
-    def __init__(self, env, peers):
+    def __init__(self, env, peers, simulation_time):
         self.env = env
         self.peers = peers
+        self.simulation_time = simulation_time
         fig = plt.figure(figsize=(8, 8))
         # interval: draws a new frame every *interval* milliseconds
         anim = FuncAnimation(fig, self.update, interval=50, blit=False)
@@ -47,14 +48,15 @@ class Visualizer(object):
         for peer in self.peers:
             for other, cnx in peer.connections.items():
                 G.add_edge(peer, other, weight=cnx.bandwidth)
-        pos = nx.graphviz_layout(G)
-        #pos = nx.spring_layout(G)
+
+        pos = nx.circular_layout(G)
         plt.cla()
 
         edges = nx.draw_networkx_edges(G, pos)
         nodes = nx.draw_networkx_nodes(G, pos, node_size=20)
-        #labels = dict((p, p.name) for p in self.peers)
-        #nx.draw_networkx_nodes(G, pos, labels=labels, font_color='k')
+
+        labels = dict((p, p.name) for p in self.peers)
+        nx.draw_networkx_nodes(G, pos, labels=labels, font_color='k')
 
         plt.axis('off')
 
@@ -73,7 +75,9 @@ class Visualizer(object):
              horizontalalignment='left',
              transform=plt.gca().transAxes)
 
+        nx.draw_networkx_labels(G, pos, labels)
 
+        if (self.env.now<self.simulation_time):
+            self.update_simulation()
 
-        #nx.draw_networkx_labels(G, pos, labels)
         return nodes,
