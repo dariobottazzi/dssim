@@ -166,7 +166,8 @@ class Peer(object):
         env.process(self.run())
 
     def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, self.name)
+        #return '<%s %s>' % (self.__class__.__name__, self.name)
+        return self.name
 
     def connect(self, other):
         if not self.is_connected(other):
