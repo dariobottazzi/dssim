@@ -3,7 +3,7 @@
 import random
 import simpy
 from simul.peer import Peer
-from simul.peer import Channel_Factory
+from simul.communication_channel import Channel_Factory
 from simul.disruptions import Downtime
 from simul.disruptions import Slowdown
 

@@ -56,5 +56,5 @@ class Test_service (BaseService):
             for i in keys:
                 print self.env.now, self.peer.name, " sent ping to ", i
                 self.peer.send(i, Ping(self.peer))
-            etime = self.execution_time() # passa la simulazione al prossimo
+            etime = 2#self.execution_time() # passa la simulazione al prossimo
             yield self.env.timeout(etime)
