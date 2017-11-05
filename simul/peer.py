@@ -25,7 +25,6 @@ class Peer(object):
         self.connections = dict()
         self.active = True
         self.services = []
-        self.disconnect_callbacks = []
         self.channel_factory = channel_factory
         env.process(self.run())
 
@@ -47,8 +46,6 @@ class Peer(object):
             del self.connections[other]
             if other.is_connected(self):
                 other.disconnect(self)
-            for cb in self.disconnect_callbacks:
-                cb(self, other)
 
     def is_connected(self, other):
         return other in self.connections
