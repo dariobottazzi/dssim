@@ -5,18 +5,20 @@ class Channel(object):
     This is the abstraction of a communications channel. The goal is to enable the communication between the different
     processes composing the distributed system.
     """
-    def __init__(self, env, sender, receiver):
+    def __init__(self, env, sender, receiver, bandwidth):
         """
         This is the constructor of the class
 
         :simpy.Environment env: it makes it possible to implement delays in message communications
         :Peer sender: the communication sender
         :Peer receiver: the communication receiver
+        :int bandwidth: channel bandwidth in Kbps
         """
         self.env = env
         self.sender = sender
         self.receiver = receiver
         self.start_time = env.now
+        self.bandwidth = bandwidth * 1024 / 8 # Bytes per second
 
     def __repr__(self):
         return '%r -> %r' % (self.sender, self.receiver)
@@ -42,26 +44,22 @@ class FIFO_Channel(Channel):
     guarantees order in message delivery with regards to consequent message transmissions.
     """
 
-    def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300):
+    def __init__(self, env, sender, receiver, bandwidth, rt_min = 10, rt_max=300):
         """
         :simpy.Environment env: it makes it possible to implement delays in message communications
         :Peer sender: the communication sender
         :Peer receiver: the communication receiver
+        :int bandwidth: channel bandwidth in Kbps
         :int rt_min: lower-bound of the communications round trip time in milliseconds
         :int rt_max: upper-bound of the communications round trip time in milliseconds
         """
-        super(FIFO_Channel, self).__init__(env, sender, receiver)
+        super(FIFO_Channel, self).__init__(env, sender, receiver, bandwidth)
         self.rt_min = rt_min
         self.rt_max = rt_max
-
 
     @property
     def round_trip(self):
         return random.randrange(self.rt_min, self.rt_max) / 1000.
-
-    @property
-    def bandwidth(self):
-        return min(self.sender.bandwidth_ul, self.receiver.bandwidth_dl)
 
     def send(self, msg):
         """
@@ -87,17 +85,18 @@ class Perfect_Link_Channel (Channel):
 
     """
 
-    def __init__(self, env, sender, receiver, rt_min = 10, rt_max=300, probability_delay=0.05, max_delay_infrastructure = 50):
+    def __init__(self, env, sender, receiver, bandwidth, rt_min = 10, rt_max=300, probability_delay=0.05, max_delay_infrastructure = 50):
         """
         :simpy.Environment env: it makes it possible to implement delays in message communications
         :Peer sender: the communication sender
         :Peer receiver: the communication receiver
+        :int bandwidth: channel bandwidth in Kbps
         :int rt_min: lower-bound of the communications round trip time in milliseconds
         :int rt_max: upper-bound of the communications round trip time in milliseconds
         :real probability_delay: probability of actual message delay
         :int max_delay_infrastructure: upperbound of the delay of the infrastructure in milliseconds
         """
-        super(Perfect_Link_Channel, self).__init__(env, sender, receiver)
+        super(Perfect_Link_Channel, self).__init__(env, sender, receiver, bandwidth)
         self.rt_min = rt_min
         self.rt_max = rt_max
         self.probability_delay = probability_delay
@@ -106,11 +105,6 @@ class Perfect_Link_Channel (Channel):
     @property
     def round_trip(self):
         return random.randrange(self.rt_min, self.rt_max) / 1000.
-
-
-    @property
-    def bandwidth(self):
-        return min(self.sender.bandwidth_ul, self.receiver.bandwidth_dl)
 
     def send(self, msg):
         """
@@ -135,16 +129,17 @@ class Perfect_Link_Channel (Channel):
 
 class Fairloss_Channel(FIFO_Channel):
 
-    def __init__(self, env, sender, receiver, delivery_probability=0.99, rt_min = 10, rt_max=300):
+    def __init__(self, env, sender, receiver, bandwidth, delivery_probability=0.99, rt_min = 10, rt_max=300):
         """
         :simpy.Environment env: it makes it possible to implement delays in message communications
         :Peer sender: the communication sender
         :Peer receiver: the communication receiver
+        :int bandwidth: channel bandwidth in Kbps
         :float delivery_probability: message delivery probability
         :int rt_min: lower-bound of the communications round trip time in milliseconds
         :int rt_max: upper-bound of the communications round trip time in milliseconds
         """
-        super(Fairloss_Channel, self).__init__(env, sender, receiver, rt_min, rt_max)
+        super(Fairloss_Channel, self).__init__(env, sender, receiver, bandwidth, rt_min, rt_max)
         self.probability = delivery_probability
 
     def send(self, msg):
@@ -163,19 +158,20 @@ class Fairloss_Channel(FIFO_Channel):
 
 class Loss_Repetition_Channel (FIFO_Channel):
 
-    def __init__(self, env, sender, receiver, delivery_probability=0.99, max_retrasmission = 3, max_time_retrasmission = 10, rt_min = 10, rt_max=300):
+    def __init__(self, env, sender, receiver, bandwidth, delivery_probability=0.99, max_retrasmission = 3, max_time_retrasmission = 10, rt_min = 10, rt_max=300):
         """
 
         :simpy.Environment env: it makes it possible to implement delays in message communications
         :Peer sender: the communication sender
         :Peer receiver: the communication receiver
+        :int bandwidth: channel bandwidth in Kbps
         :float delivery_probability: message delivery probability
         :int max_retrasmission: max number of retransmissions of the same message
         :int max_time_retrasmission: time between retransmissions in milliseconds
         :int rt_min: lower-bound of the communications round trip time in milliseconds
         :int rt_max: upper-bound of the communications round trip time in milliseconds
         """
-        super(Loss_Repetition_Channel, self).__init__(env, sender, receiver, delivery_probability, rt_min, rt_max)
+        super(Loss_Repetition_Channel, self).__init__(env, sender, receiver, bandwidth, delivery_probability, rt_min, rt_max)
         self.max_retrasmission = max_retrasmission
         self.max_time_retrasmission = max_time_retrasmission / 1000.
 
@@ -203,13 +199,14 @@ class Channel_Factory:
         self.max_time_retrasmission = 10
         self.probability_delay = 0.05
         self.max_delay_infrastructure = 50
+        self.bandwidth = 2400 # Kbps
 
     def factory(self, env, sender, receiver):
         if (self.channel_type=="FIFO_Channel"):
-            return FIFO_Channel(env, sender, receiver, self.rt_min, self.rt_max)
+            return FIFO_Channel(env, sender, receiver, self.bandwidth, self.rt_min, self.rt_max)
         elif (self.channel_type=="Fairloss_Channel"):
-            return Fairloss_Channel (env, sender, receiver, self.delivery_probability, self.rt_min, self.rt_max)
+            return Fairloss_Channel (env, sender, receiver, self.bandwidth, self.delivery_probability, self.rt_min, self.rt_max)
         elif (self.channel_type=="Loss_Repetition_Channel"):
-            return Loss_Repetition_Channel (env, sender, receiver, self.delivery_probability, self.max_retrasmission, self.max_time_retrasmission, self.rt_min, self.rt_max)
+            return Loss_Repetition_Channel (env, sender, receiver, self.bandwidth, self.delivery_probability, self.max_retrasmission, self.max_time_retrasmission, self.rt_min, self.rt_max)
         elif (self.channel_type=="Perfect_Link_Channel"):
-            return Perfect_Link_Channel (env, sender, receiver, self.rt_min, self.rt_max, self.probability_delay, self.max_delay_infrastructure)
+            return Perfect_Link_Channel (env, sender, receiver, self.bandwidth, self.rt_min, self.rt_max, self.probability_delay, self.max_delay_infrastructure)

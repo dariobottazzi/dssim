@@ -18,9 +18,6 @@ KBit = 1024 / 8
 
 class Peer(object):
 
-    bandwidth_ul = 2400 * KBit
-    bandwidth_dl = 16000 * KBit
-
     def __init__(self, name,  env, channel_factory):
         self.name = name
         self.env = env

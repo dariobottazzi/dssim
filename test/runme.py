@@ -18,8 +18,6 @@ from peermanager import Test_service
 
 NUM_PEERS = 2
 SIM_DURATION = 100
-KBit = 1024/8
-MBit = 1024 * KBit
 
 VISUALIZATION = False
 
@@ -37,12 +35,11 @@ def managed_peer(name, env, channel_factory):
 
 
 def create_peers(num, env):
+    print "create peers"
     peers = []
     factory = Channel_Factory("FIFO_Channel")
     for i in range(num):
         p = managed_peer('P%d' % i, env, factory)
-        p.bandwidth_ul = 1024 * KBit #max(384, random.gauss(12000, 6000)) * KBit
-        p.bandwidth_dl = 1024 * KBit #max(128, random.gauss(4800, 2400)) * KBit
         peers.append(p)
 
     for i in range(num):
