@@ -1,20 +1,20 @@
 import random
 
-from peer import BaseService
+from node import BaseService
 
 class BaseDisruption(BaseService):   # TODO: controllare le disruption e verificare che le cose vadano come atteso
-    mtbf = 24. * 60 * 60 # secs (mean time between failures)
     availability = 0.97
     interval = 1.
     is_disrupted = False
 
-    def __init__(self, env, peer):
+    def __init__(self, env, node, mtbf = 100):
         self.env = env
-        self.peer = peer
+        self.node = node
         self.env.process(self.run())
+        self.mtbf = mtbf # secs (mean time between failures)
 
     def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, self.peer.name)
+        return '<%s %s>' % (self.__class__.__name__, self.node.name)
 
     def disruption_start(self):
         pass
@@ -41,37 +41,37 @@ class BaseDisruption(BaseService):   # TODO: controllare le disruption e verific
 
 class Downtime(BaseDisruption):
     """
-    temporarily deactivates the peer
+    temporarily deactivates the node
     """
-    mtbf = 4. * 60  # secs (mean time between failures)
+
     availability = 0.4
     interval = 1.
 
-    def __init__(self, env, peer):
-        super(Downtime, self).__init__(env, peer)
+    def __init__(self, env, node, mtbf = 100):
+        super(Downtime, self).__init__(env, node, mtbf)
 
     def disruption_start(self):
-        self.peer.active = False
+        self.node.active = False
 
     def restore_state(self):
         pass
 
     def disruption_end(self):
-        self.peer.active = True
-        self.restore_state() # execute restore state operations or peer boostrap if it is needed
+        self.node.active = True
+        self.restore_state() # execute restore state operations or node boostrap if it is needed
 
 
 
 class Crash_Stop (BaseDisruption):
-    interval = 5.
 
-    def __init__(self, env, peer):
-        super(Crash_Stop, self).__init__(env, peer)
+    def __init__(self, env, node, mtbf = 100, interval = 5):
+        super(Crash_Stop, self).__init__(env, node, mtbf)
+        self.interval = interval
 
     def disruption_start(self):
-        if (self.peer.active == True):
-                self.peer.active = False
-                print "peer", self.peer, "is down"
+        if (self.node.active == True):
+                self.node.active = False
+                print "node", self.node, "is down"
 
 
     def disruption_end(self):
@@ -82,25 +82,25 @@ class Crash_Stop (BaseDisruption):
         yield self.env.timeout(self.interval)
         self.disruption_start()
 
-
+"""
 class Slowdown(BaseDisruption):
-    """
+
     temporarily reduces bandwidth
-    """
-    mtbf = 15 * 6 # secs (mean time between failures)
+
     availability = 0.7 # full bandwidth
     interval = 1.
     bandwitdh_reduction = 0.2
 
-    def __init__(self, env, peer):
-        self.original_dl_bandwidth = peer.bandwidth_dl
-        self.original_ul_bandwidth = peer.bandwidth_ul
-        super(Slowdown, self).__init__(env, peer)
-
+    def __init__(self, env, node, mtbf = 30):
+        super(Slowdown, self).__init__(env, node)
+        self.original_bandwidth = node.bandwidth_dl
+        self.original_ul_bandwidth = node.bandwidth_ul
+        self.mtbf = mtbf
     def disruption_start(self):
-        self.peer.bandwidth_ul *= self.bandwitdh_reduction
-        self.peer.bandwidth_dl *= self.bandwitdh_reduction
+        self.node.bandwidth_ul *= self.bandwitdh_reduction
+        self.node.bandwidth_dl *= self.bandwitdh_reduction
 
     def disruption_end(self):
-        self.peer.bandwidth_dl = self.original_dl_bandwidth
-        self.peer.bandwidth_ul = self.original_ul_bandwidth
+        self.node.bandwidth_dl = self.original_dl_bandwidth
+        self.node.bandwidth_ul = self.original_ul_bandwidth
+"""

@@ -6,7 +6,7 @@
 
 import random
 import simpy
-from simul.peer import Peer
+from simul.node import Node
 from simul.communication_channel import Channel_Factory
 from simul.disruptions import Downtime
 from simul.disruptions import Slowdown
@@ -26,7 +26,7 @@ VISUALIZATION = True
 #########################################
 
 def managed_peer(name, env, channel_factory):
-    p = Peer(name, env, channel_factory)
+    p = Node(name, env, channel_factory)
     p.services.append(Lamport_clock_service(env, p))
     p.services.append(Downtime(env, p))
     p.services.append(Slowdown(env, p))

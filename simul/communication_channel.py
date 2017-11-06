@@ -10,8 +10,8 @@ class Channel(object):
         This is the constructor of the class
 
         :simpy.Environment env: it makes it possible to implement delays in message communications
-        :Peer sender: the communication sender
-        :Peer receiver: the communication receiver
+        :Node sender: the communication sender
+        :Node receiver: the communication receiver
         :int bandwidth: channel bandwidth in Kbps
         """
         self.env = env
@@ -47,8 +47,8 @@ class FIFO_Channel(Channel):
     def __init__(self, env, sender, receiver, bandwidth, rt_min = 10, rt_max=300):
         """
         :simpy.Environment env: it makes it possible to implement delays in message communications
-        :Peer sender: the communication sender
-        :Peer receiver: the communication receiver
+        :Node sender: the communication sender
+        :Node receiver: the communication receiver
         :int bandwidth: channel bandwidth in Kbps
         :int rt_min: lower-bound of the communications round trip time in milliseconds
         :int rt_max: upper-bound of the communications round trip time in milliseconds
@@ -88,8 +88,8 @@ class Perfect_Link_Channel (Channel):
     def __init__(self, env, sender, receiver, bandwidth, rt_min = 10, rt_max=300, probability_delay=0.05, max_delay_infrastructure = 50):
         """
         :simpy.Environment env: it makes it possible to implement delays in message communications
-        :Peer sender: the communication sender
-        :Peer receiver: the communication receiver
+        :Node sender: the communication sender
+        :Node receiver: the communication receiver
         :int bandwidth: channel bandwidth in Kbps
         :int rt_min: lower-bound of the communications round trip time in milliseconds
         :int rt_max: upper-bound of the communications round trip time in milliseconds
@@ -132,8 +132,8 @@ class Fairloss_Channel(FIFO_Channel):
     def __init__(self, env, sender, receiver, bandwidth, delivery_probability=0.99, rt_min = 10, rt_max=300):
         """
         :simpy.Environment env: it makes it possible to implement delays in message communications
-        :Peer sender: the communication sender
-        :Peer receiver: the communication receiver
+        :Node sender: the communication sender
+        :Node receiver: the communication receiver
         :int bandwidth: channel bandwidth in Kbps
         :float delivery_probability: message delivery probability
         :int rt_min: lower-bound of the communications round trip time in milliseconds
@@ -162,8 +162,8 @@ class Loss_Repetition_Channel (FIFO_Channel):
         """
 
         :simpy.Environment env: it makes it possible to implement delays in message communications
-        :Peer sender: the communication sender
-        :Peer receiver: the communication receiver
+        :Node sender: the communication sender
+        :Node receiver: the communication receiver
         :int bandwidth: channel bandwidth in Kbps
         :float delivery_probability: message delivery probability
         :int max_retrasmission: max number of retransmissions of the same message

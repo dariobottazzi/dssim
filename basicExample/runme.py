@@ -2,7 +2,7 @@
 
 import random
 import simpy
-from simul.peer import Peer
+from simul.node import Node
 from simul.communication_channel import Channel_Factory
 from simul.disruptions import Downtime
 from simul.disruptions import Slowdown
@@ -20,7 +20,7 @@ MBit = 1024 * KBit
 VISUALIZATION = False # TODO: fix network visualization support
 
 def managed_peer(name, env, channel_factory):
-    p = Peer(name, env, channel_factory)
+    p = Node(name, env, channel_factory)
     p.services.append(ConnectionManager(p))
     p.services.append(PeerRequestHandler())
     p.services.append(PingHandler())

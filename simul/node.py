@@ -2,7 +2,7 @@ import simpy
 from messages import BaseMessage
 from services import BaseService
 
-class Peer(object):
+class Node(object):
 
     def __init__(self, name,  env, channel_factory):
         self.name = name
@@ -40,19 +40,19 @@ class Peer(object):
         #print self, 'received', msg
         assert isinstance(msg, BaseMessage)
 
-        if (self.active == True):    # propagate the message only if the peer is active
+        if (self.active == True):    # propagate the message only if the node is active
             for s in self.services:
                 assert isinstance(s, BaseService)
                 s.handle_message(self, msg)
 
     def send(self, receiver, msg):
         # fire and forget
-        if (self.active == True):   # send the message only if the peer is active
+        if (self.active == True):   # send the message only if the node is active
             assert msg.sender == self
             self.connections[receiver].send(msg)
 
     def broadcast(self, msg):
-        if (self.active == True):  # send the message only if the peer is active
+        if (self.active == True):  # send the message only if the node is active
             for other in self.connections:
                 self.send(other, msg)
 

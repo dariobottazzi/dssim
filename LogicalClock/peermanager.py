@@ -1,5 +1,6 @@
 # definition of the protocol to simulate
 
+from simul.communication_channel import Channel
 from simul.services import BaseService
 from simul.messages import BaseMessage
 
