@@ -1,6 +1,6 @@
 # definition of the protocol to simulate
 
-from simul.peer import BaseService, Connection
+from simul.services import BaseService
 from simul.messages import BaseMessage
 
 ###### Messages ###############

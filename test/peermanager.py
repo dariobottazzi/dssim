@@ -1,5 +1,5 @@
-from simul.peer import BaseService
 from simul.messages import BaseMessage
+from simul.services import BaseService
 
 import random
 

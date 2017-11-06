@@ -1,20 +1,6 @@
 import simpy
 from messages import BaseMessage
-
-
-class BaseService(object):
-    """
-    Added to Peers to provide services like
-    - connection management
-    - monitoring
-    - working on tasks
-
-    """
-    def handle_message(self, receiving_peer, msg):
-        "this callable is added as a listener to Peer.listeners"
-        pass
-
-KBit = 1024 / 8
+from services import BaseService
 
 class Peer(object):
 
@@ -72,8 +58,6 @@ class Peer(object):
 
     def run(self):
         while True:
-            # check network for new messages
-            #print self, 'waiting for message'
-            msg = yield self.msg_queue.get()
+            msg = yield self.msg_queue.get() # check network for new messages
             self.receive(msg)
 
