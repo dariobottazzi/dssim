@@ -2,7 +2,7 @@ import simpy
 from messages import BaseMessage
 from services import BaseService
 
-class Node(object):
+class Node(object): # TODO: enable verbose logging con i dettalgi di basso livello
 
     def __init__(self, name,  env, channel_factory):
         self.name = name
@@ -13,22 +13,21 @@ class Node(object):
         self.services = []
         self.channel_factory = channel_factory
         env.process(self.run())
+        print self.env.now, "\tnode ", self.name, "\tcreated"
 
     def __repr__(self):
         return self.name
 
     def connect(self, other):
         if not self.is_connected(other):
-            print self.env.now,
-            print " %r connecting to %r" % (self, other)
+            print self.env.now, "\t", self, "\tconnected to", other
             self.connections[other] = self.channel_factory.factory(self.env, self, other)
             if not other.is_connected(self):
                 other.connect(self)
 
     def disconnect(self, other):
         if self.is_connected(other):
-            print self.env.now,
-            print " %r disconnecting from %r" % (self, other)
+            print self.env.now, "\t", self, "\tdisconnected from", other
             del self.connections[other]
             if other.is_connected(self):
                 other.disconnect(self)
@@ -36,8 +35,13 @@ class Node(object):
     def is_connected(self, other):
         return other in self.connections
 
+    def is_active(self):
+        return self.active
+
+    def is_disconnected (self):
+        return not(bool(self.connections))
+
     def receive(self, msg):
-        #print self, 'received', msg
         assert isinstance(msg, BaseMessage)
 
         if (self.active == True):    # propagate the message only if the node is active

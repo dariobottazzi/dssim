@@ -24,8 +24,13 @@ class Channel(object):
         return '%r -> %r' % (self.sender, self.receiver)
 
     def _delivery (self, msg):
-        if self.receiver.is_connected(msg.sender):
+        if (self.receiver.is_connected(msg.sender) and self.receiver.is_active()):
             self.receiver.msg_queue.put(msg)
+            print self.env.now, "\t", self.sender, "\t->\t", self.receiver, "\t", msg
+        elif not(self.receiver.is_connected(msg.sender)):
+            print self.env.now, "\t", self.sender, "\t-X\t", self.receiver, "\tDROP: ", msg
+        else:
+            print self.env.now, "\t", self.sender, "\t-X\t", self.receiver, "\tRECIPIENT DOWN: ", msg
 
     def send(self, msg):
         """

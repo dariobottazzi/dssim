@@ -2,6 +2,21 @@ import matplotlib.pyplot as plt
 import networkx as nx # TODO: fix network visualization support
 from matplotlib.animation import FuncAnimation
 
+"""
+
+from seqdiag import parser, builder, drawer
+
+tree = parser.parse_string("{web --> pippo;}")
+diagram = builder.ScreenNodeBuilder.build(tree)
+draw = drawer.DiagramDraw('PNG', diagram, filename="foo.png")
+draw.draw()
+draw.save()
+
+#from PIL import Image
+#image = Image.open('foo.png')
+#image.show()
+
+"""
 
 def avg_bandwidth(nodes):
     bws = []
@@ -40,8 +55,6 @@ class Visualizer(object):
         self.env.run(self.env.now + 1)
 
     def update(self, n):
-#        print 'update simulation'
-        # create graph
         G = nx.Graph()
         for node in self.nodes:
             G.add_node(node, label=node.name)

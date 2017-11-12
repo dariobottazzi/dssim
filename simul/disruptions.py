@@ -1,17 +1,17 @@
-import random
 
-from node import BaseService
+from services import BaseService
 
 class BaseDisruption(BaseService):   # TODO: controllare le disruption e verificare che le cose vadano come atteso
-    availability = 0.97
-    interval = 1.
+    """
+    the class changes on-line behaviour of the node at regular times
+    """
     is_disrupted = False
 
-    def __init__(self, env, node, mtbf = 100):
+    def __init__(self, env, node, time):
         self.env = env
         self.node = node
         self.env.process(self.run())
-        self.mtbf = mtbf # secs (mean time between failures)
+        self.time = time # secs (time between failures)
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.node.name)
@@ -24,19 +24,16 @@ class BaseDisruption(BaseService):   # TODO: controllare le disruption e verific
 
     def probe_status_change(self):
         if not self.is_disrupted:
-            if random.random() < self.interval / self.mtbf:
-                self.is_disrupted = True
-                self.disruption_start()
+            self.is_disrupted = True
+            self.disruption_start()
         else:
-            avg_disruption_duration = self.mtbf * (1 - self.availability)
-            if random.random() < self.interval / avg_disruption_duration:
-                self.is_disrupted = False
-                self.disruption_end()
+            self.is_disrupted = False
+            self.disruption_end()
 
     def run(self):
         while True:
             self.probe_status_change()
-            yield self.env.timeout(self.interval)
+            yield self.env.timeout(self.time)
 
 
 class Downtime(BaseDisruption):
@@ -44,42 +41,39 @@ class Downtime(BaseDisruption):
     temporarily deactivates the node
     """
 
-    availability = 0.4
-    interval = 1.
-
-    def __init__(self, env, node, mtbf = 100):
-        super(Downtime, self).__init__(env, node, mtbf)
+    def __init__(self, env, node, time):
+        super(Downtime, self).__init__(env, node, time)
 
     def disruption_start(self):
         self.node.active = False
+        print "node", self.node, "is down"
 
     def restore_state(self):
         pass
 
     def disruption_end(self):
         self.node.active = True
+        print "node", self.node, "is up again"
         self.restore_state() # execute restore state operations or node boostrap if it is needed
 
 
 
 class Crash_Stop (BaseDisruption):
 
-    def __init__(self, env, node, mtbf = 100, interval = 5):
-        super(Crash_Stop, self).__init__(env, node, mtbf)
-        self.interval = interval
+    def __init__(self, env, node, time):
+        super(Crash_Stop, self).__init__(env, node, time)
+        self.time = time
 
     def disruption_start(self):
         if (self.node.active == True):
                 self.node.active = False
                 print "node", self.node, "is down"
 
-
     def disruption_end(self):
         pass
 
-
     def run(self):
-        yield self.env.timeout(self.interval)
+        yield self.env.timeout(self.time)
         self.disruption_start()
 
 """

@@ -26,9 +26,9 @@ VISUALIZATION = False
 def managed_peer(name, env, channel_factory):
     p = Node(name, env, channel_factory)
     p.services.append(Test_service(env, p))
-    #p.services.append(Downtime(env, p))
+    p.services.append(Downtime(env, p, 10))
     #p.services.append(Slowdown(env, p))
-    #p.services.append(Crash_Stop(env, p))
+    #p.services.append(Crash_Stop(env, p, 10))
     return p
 
 #########################################
@@ -53,6 +53,7 @@ def create_peers(num, env):
 env = simpy.Environment()
 
 peers = create_peers(NUM_PEERS, env)
+
 print 'starting sim'
 
 if VISUALIZATION: # TODO: fix network visualization support
