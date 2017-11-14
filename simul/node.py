@@ -18,6 +18,7 @@ class Node(object): # TODO: enable verbose logging con i dettalgi di basso livel
     def __repr__(self):
         return self.name
 
+
     def connect(self, other):
         if not self.is_connected(other):
             print self.env.now, "\t", self, "\tconnected to", other

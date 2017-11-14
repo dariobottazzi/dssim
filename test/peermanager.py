@@ -3,9 +3,7 @@ from simul.services import BaseService
 
 import random
 
-
 ###### Messages ################
-
 
 class Ping(BaseMessage):
     def __init__(self, sender):
@@ -27,29 +25,28 @@ class Pong(BaseMessage):
 
 class Test_service (BaseService):
 
-    def __init__(self, env, peer):
-        self.peer = peer
+    def __init__(self, env, node):
+        self.node = node
         self.action = env.process(self.run())
 
     def __repr__(self):
-        return "Test_service(%s)" % self.peer.name
+        return "Test_service(%s)" % self.node.name
 
     @property
     def env(self):
-        return self.peer.env
+        return self.node.env
 
-    def handle_message(self, peer, msg):
+    def handle_message(self, node, msg):
         if isinstance(msg, Ping):
-            print self.env.now, self.peer.name, " received ping from ", msg.sender
+            print self.env.now, self.node.name, " received ping from ", msg.sender
             self.env.timeout(random.random())
 
-            print self.env.now, self.peer.name, " sent pong to ", msg.sender
-            self.peer.send(msg.sender, Pong(self.peer))
+            print self.env.now, self.node.name, " sent pong to ", msg.sender
+            self.node.send(msg.sender, Pong(self.node))
         elif isinstance(msg, Pong):
-            print self.env.now, self.peer.name, " recived pong from ", msg.sender
+            print self.env.now, self.node.name, " recived pong from ", msg.sender
         else:
-            print self.env.now, self.peer.name, "drops the message from ", msg.sender, " because its type is unknown"
-
+            print self.env.now, self.node.name, "drops the message from ", msg.sender, " because its type is unknown"
 
     def execution_time(self):
         return random.randint(1, 10) / 10. + 1  # time [1, 2]
@@ -57,10 +54,10 @@ class Test_service (BaseService):
     def run(self):
         while True:
             # send a message including the logical time
-            keys = self.peer.connections.keys()
+            keys = self.node.connections.keys()
             for i in keys:
-                if self.peer.is_active():
-                    print self.env.now, self.peer.name, " sent ping to ", i
-                    self.peer.send(i, Ping(self.peer))
+                if self.node.is_active():
+                    print self.env.now, self.node.name, " sent ping to ", i
+                    self.node.send(i, Ping(self.node))
             etime = 2#self.execution_time() # passa la simulazione al prossimo
             yield self.env.timeout(etime)

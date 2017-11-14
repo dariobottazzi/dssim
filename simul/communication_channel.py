@@ -5,6 +5,14 @@ class Channel(object):
     This is the abstraction of a communications channel. The goal is to enable the communication between the different
     processes composing the distributed system.
     """
+
+    verbose = True
+
+    def log(self, str):
+        """This method is invoked to log data."""
+        if (self.verbose):
+            print str
+
     def __init__(self, env, sender, receiver, bandwidth):
         """
         This is the constructor of the class
@@ -26,11 +34,12 @@ class Channel(object):
     def _delivery (self, msg):
         if (self.receiver.is_connected(msg.sender) and self.receiver.is_active()):
             self.receiver.msg_queue.put(msg)
-            print self.env.now, "\t", self.sender, "\t->\t", self.receiver, "\t", msg
+            self.log(str(self.env.now)+"\t"+self.sender.name+"\t->\t"+self.receiver.name+"\t"+str(msg))
         elif not(self.receiver.is_connected(msg.sender)):
-            print self.env.now, "\t", self.sender, "\t-X\t", self.receiver, "\tDROP: ", msg
+            self.log(str(self.env.now) + "\t" + self.sender.name +"\t-X\t"+self.receiver.name+"\tDROP: "+str(msg))
         else:
-            print self.env.now, "\t", self.sender, "\t-X\t", self.receiver, "\tRECIPIENT DOWN: ", msg
+            self.log(str(self.env.now) + "\t" + self.sender.name +"\t-X\t"+self.receiver.name+"\tRECIPIENT DOWN: "+str(msg))
+
 
     def send(self, msg):
         """
@@ -158,7 +167,7 @@ class Fairloss_Channel(FIFO_Channel):
         if (run_dice <= self.probability):
             super(Fairloss_Channel, self).send(msg)
         else:
-            print "channel dropped the message"
+            self.log("channel dropped the message")
 
 
 class Loss_Repetition_Channel (FIFO_Channel):
