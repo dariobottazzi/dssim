@@ -1,4 +1,7 @@
 import random
+from node import Node
+from messages import NetworkMessage
+import simpy
 
 class Channel(object):
     """
@@ -22,6 +25,12 @@ class Channel(object):
         :Node receiver: the communication receiver
         :int bandwidth: channel bandwidth in Kbps
         """
+        assert isinstance(env, simpy.Environment)
+        assert isinstance(sender, Node)
+        assert isinstance(receiver, Node)
+        assert isinstance(bandwidth, (int, long, float))
+        assert bandwidth > 0
+
         self.env = env
         self.sender = sender
         self.receiver = receiver
@@ -32,6 +41,8 @@ class Channel(object):
         return '%r -> %r' % (self.sender, self.receiver)
 
     def _delivery (self, msg):
+        assert isinstance(msg, NetworkMessage)
+
         if (self.receiver.is_connected(msg.sender) and self.receiver.is_active()):
             self.receiver.msg_queue.put(msg)
             self.log(str(self.env.now)+"\t"+self.sender.name+"\t->\t"+self.receiver.name+"\t"+str(msg))
@@ -49,6 +60,7 @@ class Channel(object):
 
         :NetworkMessage msg: the actual message to communicate.
         """
+        assert isinstance(msg, NetworkMessage)
         pass
 
 
@@ -68,8 +80,14 @@ class FIFO_Channel(Channel):
         :int rt_max: upper-bound of the communications round trip time in milliseconds
         """
         super(FIFO_Channel, self).__init__(env, sender, receiver, bandwidth)
+        assert isinstance(rt_min, (int, long, float))
+        assert isinstance(rt_max, (int, long, float))
+        assert rt_min > 0
+        assert rt_max > 0
+
         self.rt_min = rt_min
         self.rt_max = rt_max
+
 
     @property
     def round_trip(self):
@@ -89,6 +107,7 @@ class FIFO_Channel(Channel):
             yield self.env.timeout(delay)
             self._delivery(msg)
 
+        assert isinstance(msg, NetworkMessage)
         self.env.process(_transfer())
 
 
@@ -111,6 +130,15 @@ class Perfect_Link_Channel (Channel):
         :int max_delay_infrastructure: upperbound of the delay of the infrastructure in milliseconds
         """
         super(Perfect_Link_Channel, self).__init__(env, sender, receiver, bandwidth)
+        assert isinstance(rt_min, (int, long, float))
+        assert isinstance(rt_max, (int, long, float))
+        assert isinstance(probability_delay, (int, long, float))
+        assert isinstance(max_delay_infrastructure, (int, long, float))
+        assert rt_min > 0
+        assert rt_max > 0
+        assert probability_delay > 0
+        assert max_delay_infrastructure > 0
+
         self.rt_min = rt_min
         self.rt_max = rt_max
         self.probability_delay = probability_delay
@@ -134,6 +162,8 @@ class Perfect_Link_Channel (Channel):
             yield self.env.timeout(delay)
             self._delivery(msg)
 
+        assert isinstance(msg, NetworkMessage)
+
         if (random.random() <= self.probability_delay):
             yield self.env.timeout(self.max_delay_infrastructure) # TODO: controllare che possano essere mandati altri messaggi comunque
 
@@ -154,6 +184,9 @@ class Fairloss_Channel(FIFO_Channel):
         :int rt_max: upper-bound of the communications round trip time in milliseconds
         """
         super(Fairloss_Channel, self).__init__(env, sender, receiver, bandwidth, rt_min, rt_max)
+        assert isinstance(delivery_probability, (int, long, float))
+        assert delivery_probability > 0
+
         self.probability = delivery_probability
 
     def send(self, msg):
@@ -163,6 +196,7 @@ class Fairloss_Channel(FIFO_Channel):
 
         :BasicMessage msg: the message to communicate
         """
+        assert isinstance(msg, NetworkMessage)
         run_dice = random.random()
         if (run_dice <= self.probability):
             super(Fairloss_Channel, self).send(msg)
@@ -186,6 +220,9 @@ class Loss_Repetition_Channel (FIFO_Channel):
         :int rt_max: upper-bound of the communications round trip time in milliseconds
         """
         super(Loss_Repetition_Channel, self).__init__(env, sender, receiver, bandwidth, delivery_probability, rt_min, rt_max)
+        assert isinstance(max_retrasmission, (int, long, float))
+        assert max_retrasmission > 0
+
         self.max_retrasmission = max_retrasmission
         self.max_time_retrasmission = max_time_retrasmission / 1000.
 
@@ -195,6 +232,7 @@ class Loss_Repetition_Channel (FIFO_Channel):
 
         :BasicMessage msg: the message to communicate
         """
+        assert isinstance(msg, NetworkMessage)
         run_dice = random.random()
         number_tx = int(run_dice * self.max_retrasmission) + 1
 

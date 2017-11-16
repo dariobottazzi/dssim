@@ -1,8 +1,8 @@
 import simpy
-from messages import Message
+from messages import Message, NetworkMessage
 from services import BaseService
 
-class Node(object): # TODO: enable verbose logging con i dettalgi di basso livello
+class Node(object):
 
     def __init__(self, name,  env, channel_factory):
         self.name = name
@@ -20,6 +20,7 @@ class Node(object): # TODO: enable verbose logging con i dettalgi di basso livel
 
 
     def connect(self, other):
+        assert isinstance(other, Node)
         if not self.is_connected(other):
             print self.env.now, "\t", self, "\tconnected to", other
             self.connections[other] = self.channel_factory.factory(self.env, self, other)
@@ -27,6 +28,7 @@ class Node(object): # TODO: enable verbose logging con i dettalgi di basso livel
                 other.connect(self)
 
     def disconnect(self, other):
+        assert isinstance(other, Node)
         if self.is_connected(other):
             print self.env.now, "\t", self, "\tdisconnected from", other
             del self.connections[other]
@@ -34,6 +36,7 @@ class Node(object): # TODO: enable verbose logging con i dettalgi di basso livel
                 other.disconnect(self)
 
     def is_connected(self, other):
+        assert isinstance(other, Node)
         return other in self.connections
 
     def is_active(self):
@@ -52,16 +55,23 @@ class Node(object): # TODO: enable verbose logging con i dettalgi di basso livel
 
     def send(self, receiver, msg):
         # fire and forget
+        assert isinstance(msg, NetworkMessage)
+        assert isinstance(receiver, Node)
+
         if (self.active == True):   # send the message only if the node is active
             assert msg.sender == self
             self.connections[receiver].send(msg)
 
     def indicate (self, msg):
         # this method is similar to send but it is conceived for communications between services in the same node
+        assert isinstance(msg, Message)
+
         if (self.active == True):
             self.msg_queue.put(msg)
 
     def broadcast(self, msg):
+        assert isinstance(msg, NetworkMessage)
+
         if (self.active == True):  # send the message only if the node is active
             for other in self.connections:
                 self.send(other, msg)
