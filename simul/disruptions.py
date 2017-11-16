@@ -1,17 +1,25 @@
 
 from services import BaseService
+import simpy
+from node import Node
 
 class BaseDisruption(BaseService):   # TODO: controllare le disruption e verificare che le cose vadano come atteso
     """
     the class changes on-line behaviour of the node at regular times
     """
-    is_disrupted = False
+    is_disrupted = True
 
     def __init__(self, env, node, time):
         self.env = env
         self.node = node
         self.env.process(self.run())
         self.time = time # secs (time between failures)
+
+        assert isinstance(env, simpy.Environment)
+        assert isinstance(self.node, Node)
+        assert isinstance(time, (int, long, float))
+        assert time > 0
+
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.node.name)
@@ -34,6 +42,7 @@ class BaseDisruption(BaseService):   # TODO: controllare le disruption e verific
         while True:
             self.probe_status_change()
             yield self.env.timeout(self.time)
+
 
 
 class Downtime(BaseDisruption):
@@ -62,6 +71,8 @@ class Crash_Stop (BaseDisruption):
 
     def __init__(self, env, node, time):
         super(Crash_Stop, self).__init__(env, node, time)
+        assert isinstance(time, (int, long, float))
+        assert time > 0
         self.time = time
 
     def disruption_start(self):

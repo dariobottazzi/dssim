@@ -49,7 +49,7 @@ class Node(object):
         assert isinstance(msg, Message)
 
         if (self.active == True):    # propagate the message only if the node is active
-            for s in self.services:
+            for s in self.services:  # TODO: consider the implementation of a registration mechanism to reduce overhead by providing messages only to services which are able to handle them
                 assert isinstance(s, BaseService)
                 s.handle_message(msg)
 

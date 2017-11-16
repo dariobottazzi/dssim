@@ -36,6 +36,8 @@ def create_peers(num, env):
     print "create nodes"
     peers = []
     factory = Channel_Factory("FIFO_Channel")
+    factory.verbose = False
+
     for i in range(num):
         p = managed_peer('P%d' % i, env, factory)
         peers.append(p)
@@ -44,7 +46,6 @@ def create_peers(num, env):
         for j in range(num):
             if (i!=j):
                 peers[i].connect(peers[j])
-
 
     return peers
 

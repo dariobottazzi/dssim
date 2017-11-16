@@ -252,15 +252,28 @@ class Channel_Factory:
         self.probability_delay = 0.05
         self.max_delay_infrastructure = 50
         self.bandwidth = 2400 # Kbps
+        self.verbose = False
 
     def factory(self, env, sender, receiver):
         if (self.channel_type=="FIFO_Channel"):
-            return FIFO_Channel(env, sender, receiver, self.bandwidth, self.rt_min, self.rt_max)
+            ch = FIFO_Channel(env, sender, receiver, self.bandwidth, self.rt_min, self.rt_max)
+            ch.verbose = self.verbose
+            return ch
+
         elif (self.channel_type=="Fairloss_Channel"):
-            return Fairloss_Channel (env, sender, receiver, self.bandwidth, self.delivery_probability, self.rt_min, self.rt_max)
+            ch = Fairloss_Channel (env, sender, receiver, self.bandwidth, self.delivery_probability, self.rt_min, self.rt_max)
+            ch.verbose = self.verbose
+            return ch
+
         elif (self.channel_type=="Loss_Repetition_Channel"):
-            return Loss_Repetition_Channel (env, sender, receiver, self.bandwidth, self.delivery_probability, self.max_retrasmission, self.max_time_retrasmission, self.rt_min, self.rt_max)
+            ch = Loss_Repetition_Channel (env, sender, receiver, self.bandwidth, self.delivery_probability, self.max_retrasmission, self.max_time_retrasmission, self.rt_min, self.rt_max)
+            ch.verbose = self.verbose
+            return ch
+
         elif (self.channel_type=="Perfect_Link_Channel"):
-            return Perfect_Link_Channel (env, sender, receiver, self.bandwidth, self.rt_min, self.rt_max, self.probability_delay, self.max_delay_infrastructure)
+            ch = Perfect_Link_Channel (env, sender, receiver, self.bandwidth, self.rt_min, self.rt_max, self.probability_delay, self.max_delay_infrastructure)
+            ch.verbose = self.verbose
+            return ch
+
         else:
             raise ValueError('Unsupported channel type')
