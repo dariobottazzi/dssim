@@ -262,3 +262,5 @@ class Channel_Factory:
             return Loss_Repetition_Channel (env, sender, receiver, self.bandwidth, self.delivery_probability, self.max_retrasmission, self.max_time_retrasmission, self.rt_min, self.rt_max)
         elif (self.channel_type=="Perfect_Link_Channel"):
             return Perfect_Link_Channel (env, sender, receiver, self.bandwidth, self.rt_min, self.rt_max, self.probability_delay, self.max_delay_infrastructure)
+        else:
+            raise ValueError('Unsupported channel type')

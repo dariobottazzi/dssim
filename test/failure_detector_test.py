@@ -14,7 +14,7 @@ from components.failure_detector import *
 
 from peermanager import Test_service
 
-NUM_PEERS = 100
+NUM_PEERS = 10
 SIM_DURATION = 100
 
 
@@ -63,3 +63,10 @@ peers = create_peers(NUM_PEERS, env)
 
 print 'starting sim'
 env.run(until=SIM_DURATION)
+
+
+print " _   _"
+print "((___))"
+print "[ X x ]"
+print " \   /"
+print " ('_') I am done\n\n"
