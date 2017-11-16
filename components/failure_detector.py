@@ -1,11 +1,11 @@
-from simul.messages import BaseMessage
+from simul.messages import NetworkMessage, Message
 from simul.services import BaseService
 
 import random
 
 ################ Messages ################
 
-class HeartbeatReqMessage(BaseMessage):
+class HeartbeatReqMessage(NetworkMessage):
     """this class represents the Heartbeat Request Message"""
     def __init__(self, sender):
         super(HeartbeatReqMessage, self).__init__(sender)
@@ -14,7 +14,7 @@ class HeartbeatReqMessage(BaseMessage):
     def __repr__(self):
         return "Heartbeat_Request"
 
-class HeartbeatRespMessage(BaseMessage):
+class HeartbeatRespMessage(NetworkMessage):
     """this class represents the Heartbeat Response Message"""
     def __init__(self, sender):
         super(HeartbeatRespMessage, self).__init__(sender)
@@ -23,13 +23,19 @@ class HeartbeatRespMessage(BaseMessage):
     def __repr__(self):
         return "Heartbeat_Response"
 
+class Avail_Internal_Message(Message):
+    def __init__(self, data=None):
+        super(Avail_Internal_Message, self).__init__(data)
+
+    def __repr__(self):
+        return "Avail_Internal_Message"
+
 ################ Services ################
 
 class Perfect_Failure_Detector (BaseService):
     """The Perfect Failure Detectors assumes to operate in a fail-stop model"""
 
     def __init__(self, env, node, response_threshold):
-
         self.node = node # reference to the node
         self.action = env.process(self.run())
         self.connections = node.connections # list of available connections
@@ -49,7 +55,7 @@ class Perfect_Failure_Detector (BaseService):
     def execution_time(self):
         return random.uniform(0,1)
 
-    def handle_message(self, node, msg):
+    def handle_message(self, msg):
         if isinstance(msg, HeartbeatReqMessage):
             self.log(str(self.env.now)+" "+self.node.name+" received heartbeat request from "+ msg.sender.name)
             self.env.timeout(self.execution_time())
@@ -59,7 +65,8 @@ class Perfect_Failure_Detector (BaseService):
         elif isinstance(msg, HeartbeatRespMessage):
             self.log(str(self.env.now) + " "+self.node.name+" received heartbeat response from "+ msg.sender.name)
             if (self.active[msg.sender]): # reset of the timer if it is active. When we received a message from a node declared down we skip it
-               self.received[msg.sender] = True
+                self.received[msg.sender] = True
+                self.node.indicate(Avail_Internal_Message(str(self.env.now) + "\t" + self.node.name + "\t" + str(self.active)))
 
     def run(self):
 
@@ -76,7 +83,7 @@ class Perfect_Failure_Detector (BaseService):
                 self.received[i] = False
 
             for i in keys:
-                print self.env.now, self.node.name, " sent heartbeat to ", i
+                self.log(str(self.env.now) + " " + self.node.name + " sent heartbeat to " + i.name)
                 self.node.send(i, HeartbeatReqMessage(self.node))
                 yield self.env.timeout(self.execution_time())
 
@@ -84,7 +91,13 @@ class Perfect_Failure_Detector (BaseService):
 
             for i in keys:
                 if (not(self.received[i])):
-                    print self.env.now, self.node.name, " declares that node ", i, "is down "
                     self.active[i] = False
 
             yield self.env.timeout(random.uniform(0, 1))
+
+
+class App_Failure_Detector (BaseService):
+
+    def handle_message(self, msg):
+        if isinstance(msg, Avail_Internal_Message):
+            print str(msg.data)

@@ -1,28 +1,28 @@
 # definition of the protocol to simulate
 from simul.communication_channel import Channel
 from simul.services import BaseService
-from simul.messages import BaseMessage
+from simul.messages import NetworkMessage
 
 ###### Messages ###############
 
-class Ping(BaseMessage):
+class Ping(NetworkMessage):
     pass
 
 
-class Pong(BaseMessage):
+class Pong(NetworkMessage):
     pass
 
 
-class RequestPeers(BaseMessage):
+class RequestPeers(NetworkMessage):
     pass
 
 
-class Hello(BaseMessage):
+class Hello(NetworkMessage):
     """Offer a peer to connect"""
     pass
 
 
-class PeerList(BaseMessage):
+class PeerList(NetworkMessage):
     def __init__(self, sender, peers):
         super(PeerList, self).__init__(sender)
         self.sender = sender

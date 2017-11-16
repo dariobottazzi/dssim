@@ -6,7 +6,7 @@ class Channel(object):
     processes composing the distributed system.
     """
 
-    verbose = True
+    verbose = False
 
     def log(self, str):
         """This method is invoked to log data."""
@@ -47,7 +47,7 @@ class Channel(object):
         receiver incoming message queue, and it is up to the receiver to process and indicate it to the application
         layer.
 
-        :BaseMessage msg: the actual message to communicate.
+        :NetworkMessage msg: the actual message to communicate.
         """
         pass
 

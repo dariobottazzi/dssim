@@ -1,11 +1,11 @@
-from simul.messages import BaseMessage
+from simul.messages import NetworkMessage
 from simul.services import BaseService
 
 import random
 
 ###### Messages ################
 
-class Ping(BaseMessage):
+class Ping(NetworkMessage):
     def __init__(self, sender):
         super(Ping, self).__init__(sender)
         self.sender = sender
@@ -13,7 +13,7 @@ class Ping(BaseMessage):
     def __repr__(self):
         return "Ping"
 
-class Pong(BaseMessage):
+class Pong(NetworkMessage):
     def __init__(self, sender):
         super(Pong, self).__init__(sender)
         self.sender = sender

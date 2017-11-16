@@ -14,7 +14,7 @@ from components.failure_detector import *
 
 from peermanager import Test_service
 
-NUM_PEERS = 20
+NUM_PEERS = 100
 SIM_DURATION = 100
 
 
@@ -22,7 +22,8 @@ SIM_DURATION = 100
 
 def managed_peer(name, env, channel_factory):
     p = Node(name, env, channel_factory)
-    p.services.append(Perfect_Failure_Detector(env, p, 2.5))
+    p.services.append(Perfect_Failure_Detector(env, p, 10))
+    p.services.append(App_Failure_Detector())
     #p.services.append(Downtime(env, p, 10))
     #p.services.append(Slowdown(env, p))
     #p.services.append(Crash_Stop(env, p, 10))
@@ -43,6 +44,7 @@ def create_peers(num, env):
         for j in range(num):
             if (i!=j):
                 peers[i].connect(peers[j])
+
 
     return peers
 

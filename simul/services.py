@@ -5,13 +5,14 @@ class BaseService(object):
     to simulate.
     """
 
-    verbose = True
+    verbose = False
 
     def log(self, str):
         """This method is invoked to log data."""
         if (self.verbose):
             print str
 
-    def handle_message(self, receiving_node, msg):
+    def handle_message(self, msg):
         """This method invoked upon receiving a message by the node receive method."""
         pass
+

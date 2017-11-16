@@ -2,7 +2,7 @@
 
 from simul.communication_channel import Channel
 from simul.services import BaseService
-from simul.messages import BaseMessage
+from simul.messages import NetworkMessage
 
 import random
 
@@ -10,7 +10,7 @@ import random
 ###### Messages ################
 
 
-class MessageTime(BaseMessage):
+class MessageTime(NetworkMessage):
     def __init__(self, sender, logical_time):
         super(MessageTime, self).__init__(sender)
         self.sender = sender

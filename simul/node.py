@@ -1,5 +1,5 @@
 import simpy
-from messages import BaseMessage
+from messages import Message
 from services import BaseService
 
 class Node(object): # TODO: enable verbose logging con i dettalgi di basso livello
@@ -43,18 +43,23 @@ class Node(object): # TODO: enable verbose logging con i dettalgi di basso livel
         return not(bool(self.connections))
 
     def receive(self, msg):
-        assert isinstance(msg, BaseMessage)
+        assert isinstance(msg, Message)
 
         if (self.active == True):    # propagate the message only if the node is active
             for s in self.services:
                 assert isinstance(s, BaseService)
-                s.handle_message(self, msg)
+                s.handle_message(msg)
 
     def send(self, receiver, msg):
         # fire and forget
         if (self.active == True):   # send the message only if the node is active
             assert msg.sender == self
             self.connections[receiver].send(msg)
+
+    def indicate (self, msg):
+        # this method is similar to send but it is conceived for communications between services in the same node
+        if (self.active == True):
+            self.msg_queue.put(msg)
 
     def broadcast(self, msg):
         if (self.active == True):  # send the message only if the node is active
