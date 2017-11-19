@@ -9,7 +9,7 @@ class Channel(object):
     processes composing the distributed system.
     """
 
-    verbose = False
+    verbose = True
 
     def log(self, str):
         """This method is invoked to log data."""

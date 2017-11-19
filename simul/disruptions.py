@@ -8,6 +8,7 @@ class BaseDisruption(BaseService):   # TODO: controllare le disruption e verific
     the class changes on-line behaviour of the node at regular times
     """
     is_disrupted = True
+    verbose = True
 
     def __init__(self, env, node, time):
         self.env = env
@@ -55,14 +56,15 @@ class Downtime(BaseDisruption):
 
     def disruption_start(self):
         self.node.active = False
-        print "node", self.node, "is down"
+        #self.node.msg_queue = simpy.Store(self.env) # loose previous messages
+        self.log(str(self.env.now) + " " +str(self.node)+"\tis down")
 
     def restore_state(self):
         pass
 
     def disruption_end(self):
         self.node.active = True
-        print "node", self.node, "is up again"
+        self.log(str(self.env.now) + " " +str(self.node) + "\tis running")
         self.restore_state() # execute restore state operations or node boostrap if it is needed
 
 
@@ -78,14 +80,15 @@ class Crash_Stop (BaseDisruption):
     def disruption_start(self):
         if (self.node.active == True):
                 self.node.active = False
-                print "node", self.node, "is down"
+                #self.node.msg_queue = simpy.Store(self.env)  # loose previous messages
+                self.log(str(self.env.now) + " " +str(self.node) + "\tis down")
 
     def disruption_end(self):
         pass
 
     def run(self):
-        yield self.env.timeout(self.time)
         self.disruption_start()
+        yield self.env.timeout(self.time)
 
 """
 class Slowdown(BaseDisruption):

@@ -35,13 +35,14 @@ class Avail_Internal_Message(Message):
 class Perfect_Failure_Detector (BaseService):
     """The Perfect Failure Detectors assumes to operate in a fail-stop model"""
 
-    def __init__(self, env, node, response_threshold):
+    def __init__(self, env, node, response_threshold, epoch_threshold):
         self.node = node # reference to the node
         self.action = env.process(self.run())
         self.connections = node.connections # list of available connections
         self.response_threshold = response_threshold # expected peer response time
         self.active = {} # this is the list of currently active and connected processors in the system.
         self.received = {}
+        self.epoch_threshold = epoch_threshold
         for i in self.node.connections.keys():
             self.received[i] = False
 
@@ -53,7 +54,7 @@ class Perfect_Failure_Detector (BaseService):
         return self.node.env
 
     def execution_time(self):
-        return random.uniform(0,1)
+        return random.uniform(0,0.300)
 
     def handle_message(self, msg):
         if isinstance(msg, HeartbeatReqMessage):
@@ -66,7 +67,7 @@ class Perfect_Failure_Detector (BaseService):
             self.log(str(self.env.now) + " "+self.node.name+" received heartbeat response from "+ msg.sender.name)
             if (self.active[msg.sender]): # reset of the timer if it is active. When we received a message from a node declared down we skip it
                 self.received[msg.sender] = True
-                self.node.indicate(Avail_Internal_Message(str(self.env.now) + "\t" + self.node.name + "\t" + str(self.active)))
+                #self.node.indicate(Avail_Internal_Message(str(self.env.now) + "\t" + self.node.name + "\t" + str(self.active))) # TODO: non fare qui questa operazione
 
     def run(self):
 
@@ -89,12 +90,16 @@ class Perfect_Failure_Detector (BaseService):
 
             yield self.env.timeout(self.response_threshold)
 
+
             for i in keys:
-                if (not(self.received[i])):
+                if (self.received[i]==False):
                     self.active[i] = False
+                    self.log(str(self.env.now) + " " + i.name + " is down")
 
-            yield self.env.timeout(random.uniform(0, 1))
+            self.log(str(self.env.now) + "\t" + self.node.name+ "\t" +str(self.received)) # TODO: mettere a posto visualizzazione piu compatta
+            self.node.indicate(Avail_Internal_Message(str(self.env.now) + "\t" + self.node.name + "\t" + str(self.active)))
 
+            yield self.env.timeout(self.epoch_threshold)
 
 class App_Failure_Detector (BaseService):
 

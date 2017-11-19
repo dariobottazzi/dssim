@@ -15,21 +15,28 @@ from components.failure_detector import *
 from peermanager import Test_service
 
 NUM_PEERS = 10
-SIM_DURATION = 100
+SIM_DURATION = 40
 
 
 #########################################
 
 def managed_peer(name, env, channel_factory):
     p = Node(name, env, channel_factory)
-    p.services.append(Perfect_Failure_Detector(env, p, 10))
+    fd = Perfect_Failure_Detector(env, p, 2, 5)
+    env.process(fd)
+    p.services.append(fd)
+
+    dt = Downtime(env, p, 10)
+    p.services.append(dt)
+
     p.services.append(App_Failure_Detector())
-    #p.services.append(Downtime(env, p, 10))
+    p.services.append(dt)
     #p.services.append(Slowdown(env, p))
     #p.services.append(Crash_Stop(env, p, 10))
-    return p
 
-#########################################
+
+
+    return p
 
 
 def create_peers(num, env):
@@ -40,6 +47,7 @@ def create_peers(num, env):
 
     for i in range(num):
         p = managed_peer('P%d' % i, env, factory)
+        #env.process(p)
         peers.append(p)
 
     for i in range(num):
@@ -48,6 +56,34 @@ def create_peers(num, env):
                 peers[i].connect(peers[j])
 
     return peers
+
+#########################################
+
+
+
+def create_small_setting (env):
+    print "create a small setting with very few nodes"
+    peers = []
+    factory = Channel_Factory("FIFO_Channel")
+    factory.verbose = True
+
+    for i in range(3):
+
+        p = Node('P%d' % i, env, factory)
+        p.services.append(Perfect_Failure_Detector(env, p, 2, 5))
+        p.services.append(App_Failure_Detector())
+
+        peers.append(p)
+
+    for i in range(3):
+        for j in range(3):
+            if (i!=j):
+                peers[i].connect(peers[j])
+
+    peers[2].services.append(Downtime(env, peers[2], 10))
+
+    return peers
+
 
 ######################
 
@@ -60,8 +96,8 @@ print " ('_') I am setting the simulator up\n\n"
 # create env
 env = simpy.Environment()
 
-peers = create_peers(NUM_PEERS, env)
-
+#peers = create_peers(NUM_PEERS, env)
+peers = create_small_setting(env)
 print 'starting sim'
 env.run(until=SIM_DURATION)
 
