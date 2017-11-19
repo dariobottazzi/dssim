@@ -45,11 +45,11 @@ class Channel(object):
 
         if (self.receiver.is_connected(msg.sender) and self.receiver.is_active()):
             self.receiver.msg_queue.put(msg)
-            self.log(str(self.env.now)+"\t"+self.sender.name+"\t->\t"+self.receiver.name+"\t"+str(msg))
+            self.log("%.4f" % self.env.now+"\t"+self.sender.name+"\t->\t"+self.receiver.name+"\t"+str(msg))
         elif not(self.receiver.is_connected(msg.sender)):
-            self.log(str(self.env.now) + "\t" + self.sender.name +"\t-X\t"+self.receiver.name+"\tDROP: "+str(msg))
+            self.log("%.4f" % self.env.now + "\t" + self.sender.name +"\t-X\t"+self.receiver.name+"\tDROP: "+str(msg))
         else:
-            self.log(str(self.env.now) + "\t" + self.sender.name +"\t-X\t"+self.receiver.name+"\tRECIPIENT DOWN: "+str(msg))
+            self.log("%.4f" % self.env.now + "\t" + self.sender.name +"\t-X\t"+self.receiver.name+"\tRECIPIENT DOWN: "+str(msg))
 
 
     def send(self, msg):

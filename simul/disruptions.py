@@ -1,7 +1,25 @@
 
 from services import BaseService
 import simpy
+from messages import Message
 from node import Node
+
+
+###################################################### Messages
+
+class Node_Down (Message):
+
+    def __repr__(self):
+        return "Node is Down"
+
+class Node_Running (Message):
+
+    def __repr__(self):
+        return "Node is Running"
+
+
+###################################################### Disruption
+
 
 class BaseDisruption(BaseService):   # TODO: controllare le disruption e verificare che le cose vadano come atteso
     """
@@ -46,6 +64,11 @@ class BaseDisruption(BaseService):   # TODO: controllare le disruption e verific
 
 
 
+
+
+###################################################### Downtime
+
+
 class Downtime(BaseDisruption):
     """
     temporarily deactivates the node
@@ -56,16 +79,21 @@ class Downtime(BaseDisruption):
 
     def disruption_start(self):
         self.node.active = False
-        #self.node.msg_queue = simpy.Store(self.env) # loose previous messages
-        self.log(str(self.env.now) + " " +str(self.node)+"\tis down")
+        self.log("%.4f" % self.env.now + " " +str(self.node)+"\tis down")
+        self.node.indicate(Node_Down())
 
     def restore_state(self):
         pass
 
     def disruption_end(self):
         self.node.active = True
-        self.log(str(self.env.now) + " " +str(self.node) + "\tis running")
+        self.log("%.4f" % self.env.now + " " +str(self.node) + "\tis running")
+        self.node.indicate(Node_Running())
         self.restore_state() # execute restore state operations or node boostrap if it is needed
+
+###################################################### Crash Stop
+
+
 
 
 
@@ -78,10 +106,10 @@ class Crash_Stop (BaseDisruption):
         self.time = time
 
     def disruption_start(self):
+        self.node.indicate(Node_Down())
         if (self.node.active == True):
                 self.node.active = False
-                #self.node.msg_queue = simpy.Store(self.env)  # loose previous messages
-                self.log(str(self.env.now) + " " +str(self.node) + "\tis down")
+                self.log("%.4f" % self.env.now + " " +str(self.node) + "\tis down")
 
     def disruption_end(self):
         pass

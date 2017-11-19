@@ -8,7 +8,7 @@ import random
 import simpy
 from simul.node import Node
 from simul.communication_channel import Channel_Factory
-from simul.disruptions import Downtime
+from simul.disruptions import Downtime, Node_Down, Node_Running
 from simul.disruptions import Crash_Stop
 from components.failure_detector import *
 
@@ -18,12 +18,14 @@ NUM_PEERS = 10
 SIM_DURATION = 40
 
 
+
 #########################################
 
 def managed_peer(name, env, channel_factory):
     p = Node(name, env, channel_factory)
-    fd = Perfect_Failure_Detector(env, p, 2, 5)
-    env.process(fd)
+    #fd = Perfect_Failure_Detector(env, p, 2, 5)
+    fd = Eventually_Perfect_Failure_Detector(env, p, 2, 5)
+    #env.process(fd)
     p.services.append(fd)
 
     dt = Downtime(env, p, 10)
@@ -33,8 +35,6 @@ def managed_peer(name, env, channel_factory):
     p.services.append(dt)
     #p.services.append(Slowdown(env, p))
     #p.services.append(Crash_Stop(env, p, 10))
-
-
 
     return p
 
@@ -59,24 +59,24 @@ def create_peers(num, env):
 
 #########################################
 
-
-
 def create_small_setting (env):
     print "create a small setting with very few nodes"
     peers = []
     factory = Channel_Factory("FIFO_Channel")
     factory.verbose = True
+    num_nodi = 3
 
-    for i in range(3):
+    for i in range(num_nodi):
 
         p = Node('P%d' % i, env, factory)
-        p.services.append(Perfect_Failure_Detector(env, p, 2, 5))
+        p.services.append(Perfect_Failure_Detector(env, p, 2, 7))
+        #p.services.append(Eventually_Perfect_Failure_Detector(env, p, 4, 8))
         p.services.append(App_Failure_Detector())
 
         peers.append(p)
 
-    for i in range(3):
-        for j in range(3):
+    for i in range(num_nodi):
+        for j in range(num_nodi):
             if (i!=j):
                 peers[i].connect(peers[j])
 

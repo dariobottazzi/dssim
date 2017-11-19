@@ -13,7 +13,7 @@ class Node(object):
         self.services = []
         self.channel_factory = channel_factory
         env.process(self.run())
-        print self.env.now, "\tnode ", self.name, "\tcreated"
+        #print self.env.now, "\tnode ", self.name, "\tcreated"
 
     def __repr__(self):
         return self.name
@@ -22,7 +22,7 @@ class Node(object):
     def connect(self, other):
         assert isinstance(other, Node)
         if not self.is_connected(other):
-            print self.env.now, "\t", self, "\tconnected to", other
+            #print self.env.now, "\t", self, "\tconnected to", other
             self.connections[other] = self.channel_factory.factory(self.env, self, other)
             if not other.is_connected(self):
                 other.connect(self)
@@ -30,7 +30,7 @@ class Node(object):
     def disconnect(self, other):
         assert isinstance(other, Node)
         if self.is_connected(other):
-            print self.env.now, "\t", self, "\tdisconnected from", other
+            #print self.env.now, "\t", self, "\tdisconnected from", other
             del self.connections[other]
             if other.is_connected(self):
                 other.disconnect(self)

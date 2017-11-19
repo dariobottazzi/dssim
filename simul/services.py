@@ -16,3 +16,6 @@ class BaseService(object):
         """This method invoked upon receiving a message by the node receive method."""
         pass
 
+    def handle_indication(self, msg):
+        pass
+
