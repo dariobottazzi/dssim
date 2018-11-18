@@ -32,7 +32,6 @@ def managed_peer(name, env, channel_factory):
     p.services.append(dt)
 
     p.services.append(App_Failure_Detector())
-    p.services.append(dt)
     #p.services.append(Slowdown(env, p))
     #p.services.append(Crash_Stop(env, p, 10))
 
@@ -85,6 +84,19 @@ def create_small_setting (env):
     return peers
 
 
+#####################
+
+
+
+class App_Failure_Detector (BaseService):
+
+    def handle_message(self, msg):
+        if isinstance(msg, Availability_Internal_Message):
+            print str(msg.data)
+
+
+
+
 ######################
 
 print " _   _"
@@ -107,3 +119,4 @@ print "((___))"
 print "[ X x ]"
 print " \   /"
 print " ('_') I am done\n\n"
+

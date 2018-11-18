@@ -63,9 +63,6 @@ class BaseDisruption(BaseService):   # TODO: controllare le disruption e verific
             yield self.env.timeout(self.time)
 
 
-
-
-
 ###################################################### Downtime
 
 

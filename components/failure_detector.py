@@ -24,12 +24,12 @@ class HeartbeatRespMessage(NetworkMessage):
     def __repr__(self):
         return "Heartbeat_Response"
 
-class Avail_Internal_Message(Message):
+class Availability_Internal_Message(Message):
     def __init__(self, data=None):
-        super(Avail_Internal_Message, self).__init__(data)
+        super(Availability_Internal_Message, self).__init__(data)
 
     def __repr__(self):
-        return "Avail_Internal_Message"
+        return "Availability_Internal_Message"
 
 ################ Services ################
 
@@ -68,7 +68,6 @@ class Perfect_Failure_Detector (BaseService):
             self.log("%.4f" % self.env.now + " "+self.node.name+" received heartbeat response from "+ msg.sender.name)
             if (self.active[msg.sender]): # reset of the timer if it is active. When we received a message from a node declared down we skip it
                 self.received[msg.sender] = True
-                #self.node.indicate(Avail_Internal_Message("%.4f" % self.env.now + "\t" + self.node.name + "\t" + str(self.active))) # TODO: non fare qui questa operazione
 
     def run(self):
 
@@ -98,7 +97,15 @@ class Perfect_Failure_Detector (BaseService):
                     self.log("%.4f" % self.env.now + " " + i.name + " is down")
 
             self.log("%.4f" % self.env.now + "\t" + self.node.name+ "\t" +str(self.received)) # TODO: mettere a posto visualizzazione piu compatta
-            self.node.indicate(Avail_Internal_Message("%.4f" % self.env.now + "\t" + self.node.name + "\t" + str(self.active)))
+
+            avail_nodes = []
+            for j in self.received.keys():
+                if self.received[j] == True:
+                    avail_nodes.append(j)
+
+            self.node.indicate(Availability_Internal_Message(avail_nodes))
+
+            #self.node.indicate(Availability_Internal_Message(self.received.keys()))
 
             yield self.env.timeout(self.epoch_threshold)
 
@@ -180,17 +187,18 @@ class Eventually_Perfect_Failure_Detector (BaseService):
                     self.active[i] = True
 
             self.log("%.4f" % self.env.now + "\t" + self.node.name+ "\t" +str(self.suspected))
-            self.node.indicate(Avail_Internal_Message("%.4f" % self.env.now + "\t" + self.node.name + "\t" + str(self.active)))
+
+            avail_nodes = []
+            for j in self.active.keys():
+                if self.active[j] == True:
+                    avail_nodes.append(j)
+
+            self.node.indicate(Availability_Internal_Message(avail_nodes))
 
             yield self.env.timeout(self.epoch_threshold)
 
 
 
-class App_Failure_Detector (BaseService):
-
-    def handle_message(self, msg):
-        if isinstance(msg, Avail_Internal_Message):
-            print str(msg.data)
-
-
-
+#TODO: mettere la stampa delle cose nell'app failure detection e passare nel messaggio solo l'indicazione dei nodi disponibili.
+#TODO: usare il messaggio di disponibilita' per notificare al leader election module come funzionano le cose.
+#TODO: nel messaggio devono essere presenti tutti i nodi disponibili
