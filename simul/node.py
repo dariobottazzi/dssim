@@ -3,16 +3,16 @@ from messages import Message, NetworkMessage
 from services import BaseService
 
 
-########################################################################################################################
+############################################################################################################
 ##
 ## Node class definition
 ##
-########################################################################################################################
+############################################################################################################
 
 
 class Node(object):
-    """The Node class represents a network node
-     The Node is an active entity into the system and it is characterised by several attributes.
+    """The Node class represents a network node.The Node is an active entity into the system and it is 
+    characterised by several attributes.
     """
 
     def __init__(self, name,  env, channel_factory):
@@ -21,7 +21,8 @@ class Node(object):
 
         :str name: the node name
         :simpy.Environemnt env: the simulation environemnt
-        :Channel_Factory channel_factory: the channel factory that makes it possible to define the channel model
+        :Channel_Factory channel_factory: the channel factory that makes it possible to define the channel 
+        model
         """
         self.name = name
         self.env = env
@@ -48,6 +49,7 @@ class Node(object):
         assert isinstance(other, Node)
         if not self.is_connected(other):
             self.connections[other] = self.channel_factory.factory(self.env, self, other)
+
             if not other.is_connected(self):
                 other.connect(self)
 
@@ -60,13 +62,14 @@ class Node(object):
         assert isinstance(other, Node)
         if self.is_connected(other):
             del self.connections[other]
+
             if other.is_connected(self):
                 other.disconnect(self)
 
     def is_connected(self, other):
         """
-        Makes it possible to verify whether two nodes are connected. The method returns true if two nodes, are connected.
-        False otherwise.
+        Makes it possible to verify whether two nodes are connected. The method returns true if two nodes, 
+        are connected. False otherwise.
 
         :Node other: the node wrt the connection should be verified
         """
@@ -87,8 +90,8 @@ class Node(object):
 
     def receive(self, msg):
         """
-        The method simulates a received message. The received message is forwarded to all services running on top of the
-        node.
+        The method simulates a received message. The received message is forwarded to all services running 
+        on top of the node.
 
         :Message msg: received message
         """
@@ -116,7 +119,9 @@ class Node(object):
 
     def indicate (self, msg):
         """
-        this method is similar to send but enables the communication between services running on the same node
+        this method is similar to send but enables the communication between services running on the same 
+        node
+
         :Message msg: message to be delivered
         """
         assert isinstance(msg, Message)
@@ -131,9 +136,9 @@ class Node(object):
 
 
 """
-NOTES. At present time when the node receives a message it forward it to all services that are active into the node.
-This mechanism is rather espancive in terms of computational cost. As a consequence it is advisable to avoid the
-problem by considering to deliver the message only to the expected service.
+NOTES. At present time when the node receives a message it forward it to all services that are active into 
+the node. This mechanism is rather espancive in terms of computational cost. As a consequence it is 
+advisable to avoid the problem by considering to deliver the message only to the expected service.
 
 A mitigation could be deliverng the message as long as a service consume it.
 """

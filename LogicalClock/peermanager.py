@@ -33,7 +33,7 @@ class Lamport_clock_service(BaseService):
     def env(self):
         return self.peer.env
 
-    def handle_message(self, peer, msg):
+    def handle_message(self, msg):
         if isinstance(msg, MessageTime):
             print self.env.now, self.peer.name, " recived msg from ", msg.sender, " with clock ", msg.data
             if (msg.data > self.clock):

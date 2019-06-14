@@ -9,11 +9,8 @@ import simpy
 from simul.node import Node
 from simul.communication_channel import Channel_Factory
 from simul.disruptions import Downtime
-from simul.disruptions import Slowdown
+#from simul.disruptions import Slowdown
 from simul.disruptions import Crash_Stop
-
-from simul.animate import Visualizer
-
 from  peermanager import Lamport_clock_service
 
 NUM_PEERS = 5
@@ -21,15 +18,14 @@ SIM_DURATION = 50
 KBit = 1024/8
 MBit = 1024 * KBit
 
-VISUALIZATION = True
 
 #########################################
 
 def managed_peer(name, env, channel_factory):
     p = Node(name, env, channel_factory)
     p.services.append(Lamport_clock_service(env, p))
-    p.services.append(Downtime(env, p))
-    p.services.append(Slowdown(env, p))
+    p.services.append(Downtime(env, p, 10))
+    #p.services.append(Slowdown(env, p))
     #p.services.append(Crash_Stop(env, p))
     return p
 
@@ -61,10 +57,7 @@ print 'starting sim'
 
 
 
-if VISUALIZATION: # TODO: fix network visualization support
-    Visualizer(env, peers, SIM_DURATION)
-else:
-    env.run(until=SIM_DURATION)
+env.run(until=SIM_DURATION)
 
 print "------------------- Situation after the end of the execution"
 for i in peers:
