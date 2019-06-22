@@ -3,16 +3,22 @@ from node import Node
 from messages import NetworkMessage
 import simpy
 
+###########################################################################################################
+##
+## channel abstraction
+##
+###########################################################################################################
+
 class Channel(object):
     """
-    This is the abstraction of a communications channel. The goal is to enable the communication between the different
-    processes composing the distributed system.
+    This is the abstraction of a communications channel. The goal is to enable the communication between the
+    different processes composing the distributed system.
     """
 
     verbose = True
 
     def log(self, str):
-        """This method is invoked to log data."""
+        """This method is invoked to log data. Log is enabled if verbose is True."""
         if (self.verbose):
             print str
 
@@ -55,19 +61,21 @@ class Channel(object):
     def send(self, msg):
         """
         The send method makes it possible to deliver a message to the receiver. The message is simply put in
-        receiver incoming message queue, and it is up to the receiver to process and indicate it to the application
-        layer.
+        receiver incoming message queue, and it is up to the receiver to process and indicate it to the 
+        application layer.
 
         :NetworkMessage msg: the actual message to communicate.
         """
         assert isinstance(msg, NetworkMessage)
         pass
 
+########################################################################################################### ##                                                                                                          ## FIFO channel abstraction
+##                                                                                                          ###########################################################################################################
 
 class FIFO_Channel(Channel):
     """
-    The class implements the FIFO communications channel abstraction. This channel can easily model TCP links and
-    guarantees order in message delivery with regards to consequent message transmissions.
+    The class implements the FIFO communications channel abstraction. This channel can easily model TCP 
+    links and guarantees order in message delivery with regards to consequent message transmissions.
     """
 
     def __init__(self, env, sender, receiver, bandwidth, rt_min = 10, rt_max=300):
@@ -95,8 +103,8 @@ class FIFO_Channel(Channel):
 
     def send(self, msg):
         """
-        Sends the message to the receiver. It simulates the delay in message delivery by taking into account both rtt and
-        the available bandwidth in message communications.
+        Sends the message to the receiver. It simulates the delay in message delivery by taking into 
+        account both rtt and the available bandwidth in message communications.
 
         :BasicMessage msg: the message to communicate
         """
@@ -111,6 +119,8 @@ class FIFO_Channel(Channel):
         self.env.process(_transfer())
 
 
+########################################################################################################### ##                                                                                                          ## Perfect Link channel abstraction
+##                                                                                                          ###########################################################################################################
 
 class Perfect_Link_Channel (Channel):
     """
@@ -150,8 +160,8 @@ class Perfect_Link_Channel (Channel):
 
     def send(self, msg):
         """
-        Sends the message to the receiver. It simulates the delay in message delivery by taking into account both rtt and
-        the available bandwidth in message communications.
+        Sends the message to the receiver. It simulates the delay in message delivery by taking into 
+        account both rtt and the available bandwidth in message communications.
 
         :BasicMessage msg: the message to communicate
         """
@@ -169,7 +179,8 @@ class Perfect_Link_Channel (Channel):
 
         self.env.process(_transfer())
 
-
+########################################################################################################### ##                                                                                                          ## Fairloss channel abstraction  
+##                                                                                                          ###########################################################################################################
 
 class Fairloss_Channel(FIFO_Channel):
 
@@ -191,8 +202,8 @@ class Fairloss_Channel(FIFO_Channel):
 
     def send(self, msg):
         """
-        Sends the message to the receiver. It simulates the delay in message delivery by taking into account both rtt and
-        the available bandwidth in message communications.
+        Sends the message to the receiver. It simulates the delay in message delivery by taking into 
+        account both rtt and the available bandwidth in message communications.
 
         :BasicMessage msg: the message to communicate
         """
@@ -203,12 +214,13 @@ class Fairloss_Channel(FIFO_Channel):
         else:
             self.log("channel dropped the message")
 
+########################################################################################################### ##                                                                                                          ## Loss Repetition channel abstraction
+##                                                                                                          ###########################################################################################################
 
 class Loss_Repetition_Channel (FIFO_Channel):
 
     def __init__(self, env, sender, receiver, bandwidth, delivery_probability=0.99, max_retrasmission = 3, max_time_retrasmission = 10, rt_min = 10, rt_max=300):
         """
-
         :simpy.Environment env: it makes it possible to implement delays in message communications
         :Node sender: the communication sender
         :Node receiver: the communication receiver
@@ -240,6 +252,9 @@ class Loss_Repetition_Channel (FIFO_Channel):
             super(Loss_Repetition_Channel,self).send(msg)
             if (number_tx>1):
                 yield self.env.timeout(self.max_time_retrasmission * random.random())
+
+########################################################################################################### ##                                                                                                          ## channel factory
+##                                                                                                          ###########################################################################################################
 
 class Channel_Factory:
     def __init__(self, channel_type):

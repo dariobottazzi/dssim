@@ -5,7 +5,11 @@ from messages import Message
 from node import Node
 
 
-###################################################### Messages
+########################################################################################################### 
+##
+## Messages
+##
+###########################################################################################################
 
 class Node_Down (Message):
 
@@ -18,7 +22,11 @@ class Node_Running (Message):
         return "Node is Running"
 
 
-###################################################### Disruption
+###########################################################################################################
+##
+## Disruption
+##
+###########################################################################################################
 
 
 class BaseDisruption(BaseService):   # TODO: controllare le disruption e verificare che le cose vadano come atteso
@@ -63,8 +71,11 @@ class BaseDisruption(BaseService):   # TODO: controllare le disruption e verific
             yield self.env.timeout(self.time)
 
 
-###################################################### Downtime
-
+###########################################################################################################
+##
+## Downtime
+##
+###########################################################################################################
 
 class Downtime(BaseDisruption):
     """
@@ -88,11 +99,11 @@ class Downtime(BaseDisruption):
         self.node.indicate(Node_Running())
         self.restore_state() # execute restore state operations or node boostrap if it is needed
 
-###################################################### Crash Stop
-
-
-
-
+###########################################################################################################
+##
+## Crash Stop
+##
+###########################################################################################################
 
 class Crash_Stop (BaseDisruption):
 
